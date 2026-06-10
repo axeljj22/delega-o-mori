@@ -58,7 +58,7 @@
   .mark{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--ink3)}
   .mark .t{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;white-space:nowrap;color:var(--ink2)}
   .mark.goal{background:var(--good)} .mark.goal .t{color:var(--good)}
-  .mark.death{background:var(--bad)} .mark.death .t{color:var(--bad)}
+  .mark.death{background:var(--bad)} .mark.death .t{color:var(--bad);left:auto;right:0;transform:none}
   .breakdown{font-size:12px;color:var(--ink2);margin-top:16px;min-height:16px}
   .goalline{font-size:13px;color:var(--ink2);margin-top:10px}
   .goalline b{color:var(--good)}
@@ -154,6 +154,34 @@
   .kpi .k{font-size:10px;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
   .kpi .v{font-weight:800;font-size:19px}
   .neg{color:var(--bad)} .pos{color:var(--good)}
+
+  /* ---- MOBILE ---- */
+  @media(max-width:560px){
+    body{padding:0 12px 64px;font-size:14.5px}
+    .hbar{gap:9px;padding:10px 0}
+    .logo{font-size:14px}
+    .hstat .v{font-size:12.5px} .hstat .k{font-size:9px}
+    #hsRev{display:none!important}        /* Factura/sem ya se ve en el hero/áreas */
+    .btn.small{padding:5px 9px;min-height:34px}
+    .hero{padding:18px 0 4px}
+    .hero .num{font-size:40px} .hero .num small{font-size:14px}
+    .mark .t{font-size:9px}
+    .breakdown{font-size:11.5px}
+    .panel{padding:15px}
+    .bigbtn{font-size:16px;padding:20px 14px}
+    input[type=range]{min-height:34px}
+    .chip{font-size:12px} .chip .x{padding:2px 6px;margin-left:2px}
+    select{font-size:14px}
+    .modal{padding:20px}
+    .modal h2{font-size:20px}
+    .acts{flex-direction:column}
+    .acts .btn{min-width:0;width:100%}
+  }
+  @media(max-width:380px){
+    .hstat .k{display:none}               /* solo el valor, sin label */
+    .adrow .ch{width:48px} .adrow .amt{width:74px;font-size:12px}
+    .hero .num{font-size:36px}
+  }
 </style>
 </head>
 <body>
@@ -317,7 +345,7 @@ function freshState(){ return {
   clickYield:1, prompts:0,
   clients:[ mkClient('Dental Norte',1300,70), mkClient('Ferretería Paz',1250,72) ],
   workers:[], employees:[], ads:{meta:0,google:0,tiktok:0}, opHours:16,
-  tokenMult:1,tokenWeeks:0, cacMult:{meta:1,google:1,tiktok:1},cacWeeks:0, sevMult:1,sevWeeks:0,
+  tokenMult:1,tokenWeeks:0, cacMult:{meta:1,google:1,tiktok:1},cacWeeks:0, sevMult:1,sevWeeks:0, capMult:1,capWeeks:0,
   streak:0, lastRev:0, nextEvt:3, gotGuru:false, over:false,
   paused:false, speed:1,
 };}
@@ -333,6 +361,8 @@ const fmt=n=>'$'+Math.round(n).toLocaleString('es-AR');
 const $=id=>document.getElementById(id);
 const U=f=>!!S.unlocked[f];
 function unlock(f){ if(S.unlocked[f])return false; S.unlocked[f]=true; return true; }
+const revNow=()=>S.clients.reduce((s,c)=>s+c.fee,0);
+const countLv=n=>S.workers.filter(w=>w.lv===n).length;
 
 // ============================================================ CALC
 function visAreas(){ return U('areas3') ? AREAS : [AREAS[0]]; }
@@ -364,7 +394,7 @@ function areaStats(){
   for(const a of visAreas()){
     const dem=S.clients.reduce((s,c)=>s+demOf(c,a.id),0);
     const hc=S.employees.filter(e=>e.area===a.id).reduce((s,e)=>s+e.cap,0);
-    const ac=S.workers.filter(w=>w.area===a.id).reduce((s,w)=>s+LV[w.lv].cap,0)*eff;
+    const ac=S.workers.filter(w=>w.area===a.id).reduce((s,w)=>s+LV[w.lv].cap,0)*eff*S.capMult;
     out[a.id]={dem, hc, ac, cap:hc+ac, you:0};
   }
   // distribute founder hours to biggest deficit
@@ -408,7 +438,7 @@ function manualPressure(){
 function lesson(key,html){ if(S.lessons[key])return; S.lessons[key]=true; logMsg('💡 '+html,'accent'); }
 
 function checkUnlocks(){
-  // Phase 1: Prompt
+  // N1 Prompt — a las 6 tareas a mano
   if(!U('prompt') && S.tasksDone>=6){
     unlock('prompt'); unlock('tokens'); S.tokens=60; S.phase=1;
     showPanel('pTok'); showPanel('pLog');
@@ -416,7 +446,7 @@ function checkUnlocks(){
     logMsg('Se desbloqueó el <b>Nivel 1 · Prompt</b>. Tu primer aliado de IA.','accent');
     lesson('l_prompt','El <b>Prompt</b> no te saca del medio. Te hace más rápido. Seguís clickeando vos.');
   }
-  // Phase 2: Asistente available
+  // N2 Asistente — a las 20 tareas
   if(!U('assistant') && S.tasksDone>=20){
     unlock('assistant'); unlock('clients'); S.phase=2;
     showPanel('pAreas'); showPanel('pClients'); showPanel('pOp');
@@ -424,7 +454,7 @@ function checkUnlocks(){
     logMsg('Se desbloqueó el <b>Nivel 2 · Asistente</b>: el primer worker que trabaja <b>solo</b>. Construilo en tu agencia.','accent');
     lesson('l_assist','Hasta acá ejecutabas vos. El <b>Asistente</b> ejecuta por vos. Ahí empieza la delegación de verdad.');
   }
-  // Autorun starts when first passive worker exists
+  // Autorun — al construir el primer worker autónomo
   if(!U('autorun') && S.workers.length>0){
     unlock('autorun'); clearInterval(pressureTimer);
     $('pClick').classList.add('hidden');
@@ -435,34 +465,42 @@ function checkUnlocks(){
     lesson('l_auto','Soltaste el mouse. El negocio empezó a moverse sin vos. Ese es el salto.');
     startTimer();
   }
-}
-function checkWeeklyUnlocks(){
-  if(!U('areas3') && (S.week>=3 || S.clients.length>=4)){
-    unlock('areas3'); unlock('ads');
-    showPanel('pAds'); buildAreas(); buildAds();
-    logMsg('Crecés. Ahora la demanda se separa en <b>Operaciones, Growth y Admin</b>, y podés meter <b>pauta</b> para traer clientes.','accent');
-    lesson('l_areas','Más clientes = más fuegos en más áreas. Un worker no alcanza: necesitás un sistema por área.');
-  }
-  if(!U('workflow') && S.week>=5){
-    unlock('workflow'); buildAreas();
-    logMsg('Se desbloqueó el <b>Nivel 3 · Workflow</b>: encadena tareas, no intervenís.','accent');
-    lesson('l_wf','El <b>Workflow</b> conecta tareas en cadena. Dejás de tocar el proceso pieza por pieza.');
-  }
-  if(!U('humans') && S.week>=5){
-    unlock('humans'); S.employees=[mkEmp('o'),mkEmp('g'),mkEmp('a')];
-    showPanel('pTeam');
-    logMsg('Tu equipo humano que armaste mientras crecías ahora pesa: <b>salarios + horas tuyas de gestión</b>. Vas a tener que decidir a quién soltar.','warn');
-    lesson('l_humans','Delegar en sistemas a veces significa soltar gente. Duele, pero el héroe-cuello-de-botella muere primero.');
-  }
-  if(!U('agent') && S.week>=8){
-    unlock('agent'); buildAreas();
-    logMsg('Se desbloqueó el <b>Nivel 4 · Agente</b>: decide solo, gran capacidad. Cuidado, a veces alucina.','accent');
-    lesson('l_agent','El <b>Agente</b> es potente pero no es fe. Necesita supervisión, no devoción.');
-  }
-  if(!U('orch') && S.week>=11){
-    unlock('orch'); buildAreas();
-    logMsg('Se desbloqueó el <b>Nivel 5 · Orquestador</b>: agentes manejando agentes. El endgame.','accent');
-    lesson('l_orch','El <b>Orquestador</b> es el techo: tu operación se maneja sola. Acá tus horas se desploman.');
+
+  // --- Desbloqueos por logro (no por semana) ---
+  if(U('autorun')){
+    const R=revNow();
+    // Áreas + pauta — al construir un segundo worker
+    if(!U('areas3') && S.workers.length>=2){
+      unlock('areas3'); unlock('ads');
+      showPanel('pAds'); buildAreas(); buildAds();
+      logMsg('Crecés. Ahora la demanda se separa en <b>Operaciones, Growth y Admin</b>, y podés meter <b>pauta</b> para traer clientes.','accent');
+      lesson('l_areas','Más clientes = más fuegos en más áreas. Un worker no alcanza: necesitás un sistema por área.');
+    }
+    // Equipo humano — al llegar a $4.000/sem
+    if(!U('humans') && R>=4000){
+      unlock('humans'); S.employees=[mkEmp('o'),mkEmp('g'),mkEmp('a')];
+      showPanel('pTeam');
+      logMsg('Tu equipo humano que armaste mientras crecías ahora pesa: <b>salarios + horas tuyas de gestión</b>. Vas a tener que decidir a quién soltar.','warn');
+      lesson('l_humans','Delegar en sistemas a veces significa soltar gente. Duele, pero el héroe-cuello-de-botella muere primero.');
+    }
+    // N3 Workflow — $6.000/sem y 2 Asistentes
+    if(!U('workflow') && R>=6000 && countLv(2)>=2){
+      unlock('workflow'); buildAreas();
+      logMsg('Se desbloqueó el <b>Nivel 3 · Workflow</b>: encadena tareas, no intervenís.','accent');
+      lesson('l_wf','El <b>Workflow</b> conecta tareas en cadena. Dejás de tocar el proceso pieza por pieza.');
+    }
+    // N4 Agente — $9.000/sem y 1 Workflow
+    if(!U('agent') && R>=9000 && countLv(3)>=1){
+      unlock('agent'); buildAreas();
+      logMsg('Se desbloqueó el <b>Nivel 4 · Agente</b>: decide solo, gran capacidad. Cuidado, a veces alucina.','accent');
+      lesson('l_agent','El <b>Agente</b> es potente pero no es fe. Necesita supervisión, no devoción.');
+    }
+    // N5 Orquestador — $13.000/sem y 1 Agente
+    if(!U('orch') && R>=13000 && countLv(4)>=1){
+      unlock('orch'); buildAreas();
+      logMsg('Se desbloqueó el <b>Nivel 5 · Orquestador</b>: agentes manejando agentes. El endgame.','accent');
+      lesson('l_orch','El <b>Orquestador</b> es el techo: tu operación se maneja sola. Acá tus horas se desploman.');
+    }
   }
 }
 
@@ -473,6 +511,7 @@ function tick(){
   if(S.tokenWeeks>0&&--S.tokenWeeks===0){S.tokenMult=1;logMsg('El precio de los tokens se normalizó.','');}
   if(S.cacWeeks>0&&--S.cacWeeks===0){S.cacMult={meta:1,google:1,tiktok:1};logMsg('Los CPM se normalizaron.','');}
   if(S.sevWeeks>0&&--S.sevWeeks===0){S.sevMult=1;logMsg('Se cerró la ventana de indemnizaciones reducidas.','');}
+  if(S.capWeeks>0&&--S.capWeeks===0){S.capMult=1;logMsg('El efecto del cambio de modelo terminó. Capacidad normalizada.','');}
 
   const st=areaStats();
   S.tokens=Math.max(0,S.tokens-st._need);
@@ -511,7 +550,7 @@ function tick(){
     }
   }
 
-  checkWeeklyUnlocks();
+  checkUnlocks();
 
   const h=calcHours();
   if(h>=80){ endGame(false,'burnout',h); return; }
@@ -534,10 +573,11 @@ function fireEvent(){
   const avgSat=S.clients.length?S.clients.reduce((a,c)=>a+c.sat,0)/S.clients.length:0;
   const pool=[];
   if(!S.gotGuru) pool.push('guru');
-  pool.push('tokenspike','workshop');
+  pool.push('tokenspike','workshop','modelonuevo');
   if(U('ads')) pool.push('cpm');
   if(S.employees.length>0) pool.push('renuncia','reforma');
   if(S.workers.some(w=>w.lv>=4)) pool.push('alucina');
+  if(S.workers.some(w=>w.lv>=3)) pool.push('modelodeprecado');
   if(avgSat>72 && S.clients.length>=3) pool.push('referido');
   if(!pool.length){ S.nextEvt=2; return; }
   const e=pick(pool);
@@ -562,6 +602,14 @@ function fireEvent(){
   else if(e==='referido'){ const c=mkClient(pick(CLIENT_NAMES),2000+Math.random()*1500,80);S.clients.push(c);
     showEvent('🤝 Te llegó un referido','Tus clientes están contentos y te recomendaron. '+c.name+' entra sin costo ('+fmt(c.fee)+'/sem).',[{t:'Bienvenido',f:()=>{}}]); }
   else if(e==='reforma'){ S.sevMult=0.5;S.sevWeeks=6; showEvent('🏛 Reforma laboral','Ventana de 6 semanas con indemnizaciones al 50%. Si ibas a reestructurar, es ahora.',[{t:'Tomo nota',f:()=>{}}]); }
+  else if(e==='modelonuevo'){ showEvent('🚀 Salió un modelo nuevo','Más capacidad por token. Migrar cuesta $2.500 y un poco de tu semana, pero tus workers rinden +20% por 6 semanas.',[
+    {t:'Migrar ($2.500)',f:()=>{S.cash-=2500;S.capMult=1.2;S.capWeeks=6;logMsg('Migraste al modelo nuevo. +20% de capacidad por 6 semanas. Adoptaste con criterio, no por FOMO.','good');}},
+    {t:'No migrar',f:()=>{logMsg('No corriste atrás del hype. Tu sistema sigue andando igual. Ya vas a migrar cuando convenga.','good');}}
+  ]); }
+  else if(e==='modelodeprecado'){ showEvent('📅 Discontinúan tu modelo','El proveedor da de baja el modelo de tus workers en unas semanas. Migrá ahora o tu capacidad cae.',[
+    {t:'Migrar ahora ($2.500)',f:()=>{S.cash-=2500;logMsg('Migraste a tiempo. Mantener la infra no es glamoroso, pero es parte del laburo.','warn');}},
+    {t:'Postergar',f:()=>{S.capMult=0.65;S.capWeeks=4;logMsg('Postergaste la migración. Tus workers rinden al 65% por 4 semanas. La deuda de infra se paga.','bad');}}
+  ]); }
   else { S.nextEvt=2; }
 }
 function showEvent(title,body,actions){
@@ -698,7 +746,7 @@ function render(){
 
   // cold open
   if(!U('autorun')){
-    $('bigBtn').innerHTML=TASK_COPY[taskIdx][0]+'<span class="plus">+'+fmt(TASK_COPY[taskIdx][1]).replace('$','$')+' · −'+(S.prompts>0&&S.tokens>=S.prompts*PROMPT.perClickTok?S.clickYield:1)+' tarea'+((S.prompts>0&&S.tokens>=S.prompts*PROMPT.perClickTok&&S.clickYield>1)?'s':'')+'</span>';
+    $('bigBtn').innerHTML=TASK_COPY[taskIdx][0]+'<span class="plus">+'+fmt(TASK_COPY[taskIdx][1])+' · −'+(S.prompts>0&&S.tokens>=S.prompts*PROMPT.perClickTok?S.clickYield:1)+' tarea'+((S.prompts>0&&S.tokens>=S.prompts*PROMPT.perClickTok&&S.clickYield>1)?'s':'')+'</span>';
     const pn=$('pendNum'); pn.textContent=Math.round(S.pending); pn.className=S.pending>=10?'hot':'';
     $('clickHint').textContent=S.prompts>0?'Con Prompt rendís más por click. Pero seguís clickeando vos.':'Sos vos contra la bandeja. Cada tarea la hacés a mano.';
   }
@@ -726,7 +774,7 @@ function render(){
       const bar=$('bar-'+a.id); bar.style.width=(ratio*100)+'%';
       bar.style.background=ratio>=1?'var(--good)':ratio>=0.8?'var(--accent)':'var(--bad)';
       const rEl=$('ratio-'+a.id); rEl.textContent=ratio>=1?'OK':Math.round(ratio*100)+'%'; rEl.style.color=ratio>=1?'var(--good)':'var(--bad)';
-      const emps=S.employees.filter(e=>e.area===a.id).map(e=>`<span class="chip human">👤 ${e.name} <span class="x" onclick="fireEmp('${e.id}')" title="Despedir">✕</span></span>`).join('');
+      const emps=S.employees.filter(e=>e.area===a.id).map(e=>`<span class="chip human">👤 ${e.name}</span>`).join('');
       const ws=S.workers.filter(w=>w.area===a.id).map(w=>`<span class="chip">🤖 N${w.lv} ${LV[w.lv].name} <span class="x" onclick="scrapWorker('${w.id}')" title="Baja">✕</span></span>`).join('');
       $('chips-'+a.id).innerHTML=emps+ws||'<span class="small" style="color:var(--ink3)">Vacío. Acá se acumulan tareas.</span>';
       const sel=$('sel-'+a.id); const L=LV[+sel.value];
@@ -765,10 +813,10 @@ function nextTeaser(){
   if(!U('prompt')) return '??? · hacé unas cuantas tareas y algo se va a desbloquear';
   if(!U('assistant')) return '??? · seguí, hay una forma de que esto lo haga otro';
   if(!U('autorun')) return '??? · construí tu primer Asistente para soltar el mouse';
-  if(!U('areas3')) return '??? · cuando crezcas, la cosa se divide en áreas';
-  if(!U('workflow')) return '??? · Nivel 3 en camino';
-  if(!U('agent')) return '??? · Nivel 4 en camino';
-  if(!U('orch')) return '??? · el Orquestador te espera';
+  if(!U('areas3')) return '??? · construí un segundo worker y la cosa se divide en áreas';
+  if(!U('workflow')) return '??? · tené 2 Asistentes y facturá $6k para el Workflow (N3)';
+  if(!U('agent')) return '??? · construí un Workflow y llegá a $9k para el Agente (N4)';
+  if(!U('orch')) return '??? · construí un Agente y llegá a $13k para el Orquestador (N5)';
   return '';
 }
 
