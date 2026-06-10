@@ -1,0 +1,11 @@
+# Contexto interno / brief (no publicar)
+Contexto.txt
+
+# Prototipo original (reemplazado por index.html)
+delega-o-mori.html
+
+# Vercel
+.vercel
+
+# Node
+node_modules

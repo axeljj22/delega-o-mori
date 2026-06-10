@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delegá o Morí</title>
+<style>
+  :root{
+    --bg:#F3F1EA; --ink:#1A1813; --ink2:#74706A; --ink3:#AEA99F;
+    --line:#E2DFD6; --line2:#D2CEC4;
+    --accent:#E8590C; --accent-soft:#FBEAD9;
+    --good:#2F7D4F; --bad:#C0392B; --warn:#B7791F;
+    --mono:ui-monospace,'SF Mono','Cascadia Mono',Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  [hidden]{display:none!important}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:var(--mono); background:var(--bg); color:var(--ink);
+    font-size:15px; line-height:1.55; padding:0 16px 80px;
+    font-feature-settings:"tnum" 1;
+  }
+  .wrap{max-width:620px;margin:0 auto}
+
+  /* HEADER */
+  header{position:sticky;top:0;z-index:40;background:var(--bg);border-bottom:1px solid var(--line);margin:0 -16px;padding:0 16px}
+  .hbar{display:flex;align-items:center;gap:14px;padding:11px 0;max-width:620px;margin:0 auto;flex-wrap:wrap}
+  .logo{font-weight:700;letter-spacing:.02em;font-size:15px}
+  .logo b{color:var(--accent)}
+  .hstat{display:flex;flex-direction:column;line-height:1.1}
+  .hstat .k{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em}
+  .hstat .v{font-size:14px;font-weight:700}
+  .hspace{flex:1}
+  .hctrl{display:flex;gap:6px}
+
+  /* BUTTONS */
+  .btn{font-family:var(--mono);font-size:14px;font-weight:600;padding:9px 14px;border-radius:7px;border:1px solid var(--line2);background:#FBFAF6;color:var(--ink);cursor:pointer;transition:transform .08s,background .12s,border-color .12s;min-height:42px}
+  .btn:hover{background:#fff;border-color:var(--ink3)}
+  .btn:active{transform:translateY(1px)}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.primary:hover{background:#cf4e09;border-color:#cf4e09}
+  .btn.small{padding:6px 11px;min-height:34px;font-size:13px;font-weight:600}
+  .btn:focus-visible{outline:3px solid rgba(232,89,12,.3);outline-offset:1px}
+
+  /* HERO HOURS */
+  .hero{padding:26px 0 6px}
+  .hero .label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink2)}
+  .hero .num{font-size:52px;font-weight:800;line-height:.95;letter-spacing:-.02em;margin-top:4px}
+  .hero .num small{font-size:17px;font-weight:600;color:var(--ink2);letter-spacing:0}
+  .track{position:relative;height:14px;background:#E7E4DB;border-radius:7px;margin-top:20px}
+  .fill{height:100%;border-radius:7px;transition:width .5s,background .4s;min-width:5px;background:var(--accent)}
+  .mark{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--ink3)}
+  .mark .t{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;white-space:nowrap;color:var(--ink2)}
+  .mark.goal{background:var(--good)} .mark.goal .t{color:var(--good)}
+  .mark.death{background:var(--bad)} .mark.death .t{color:var(--bad)}
+  .breakdown{font-size:12px;color:var(--ink2);margin-top:16px;min-height:16px}
+  .goalline{font-size:13px;color:var(--ink2);margin-top:10px}
+  .goalline b{color:var(--good)}
+
+  /* PANELS */
+  .stage{display:flex;flex-direction:column;gap:16px;margin-top:22px}
+  .panel{border:1px solid var(--line);border-radius:11px;padding:18px;background:#FBFAF6}
+  .panel.hidden{display:none}
+  .panel.glow{animation:revealIn .55s ease}
+  @keyframes revealIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .panel h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;gap:8px}
+  .panel .hint{font-size:12.5px;color:var(--ink2);margin-top:5px}
+
+  /* COLD OPEN */
+  .bigbtn{width:100%;font-size:17px;font-weight:700;padding:22px 16px;margin-top:14px;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;line-height:1.3;transition:transform .06s,background .12s}
+  .bigbtn:hover{background:#cf4e09}
+  .bigbtn:active{transform:translateY(2px) scale(.997)}
+  .bigbtn .plus{display:block;font-size:13px;font-weight:600;opacity:.85;margin-top:3px}
+  .pend{display:flex;justify-content:space-between;align-items:baseline;margin-top:14px;font-size:13px;color:var(--ink2)}
+  .pend b{font-size:22px;font-weight:800;color:var(--ink)}
+  .pend b.hot{color:var(--bad)}
+
+  /* GENERIC ROWS */
+  .row{display:flex;align-items:center;gap:10px}
+  .grow{flex:1;min-width:0}
+  .muted{color:var(--ink2)}
+  .small{font-size:12.5px}
+  .mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
+  .num2{font-weight:700}
+
+  /* AREAS */
+  .area{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
+  .area:first-of-type{border-top:0;padding-top:0;margin-top:12px}
+  .area .nm{font-weight:700;font-size:14px}
+  .capwrap{margin-top:7px}
+  .capbar{height:9px;background:#E7E4DB;border-radius:5px;overflow:hidden;margin:5px 0}
+  .capbar i{display:block;height:100%;border-radius:5px;transition:width .4s,background .4s}
+  .capline{display:flex;justify-content:space-between;font-size:12px;color:var(--ink2)}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin:9px 0 2px}
+  .chip{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:#F0EEE6;border:1px solid var(--line);display:inline-flex;align-items:center;gap:6px}
+  .chip.human{background:var(--accent-soft);border-color:#F3D6BC}
+  .chip .x{cursor:pointer;color:var(--ink3);font-weight:800}
+  .chip .x:hover{color:var(--bad)}
+  .buildrow{display:flex;gap:8px;margin-top:10px}
+  select{font-family:var(--mono);font-size:13.5px;padding:9px;border-radius:7px;border:1px solid var(--line2);background:#fff;flex:1;min-height:42px;color:var(--ink)}
+  select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,89,12,.13)}
+  .binfo{font-size:11.5px;color:var(--ink2);margin-top:7px;min-height:15px}
+
+  /* ADS */
+  .adrow{display:flex;align-items:center;gap:10px;margin-top:11px}
+  .adrow .ch{font-weight:700;font-size:13.5px;width:58px}
+  .adrow input[type=range]{flex:1;accent-color:var(--accent);min-height:26px}
+  .adrow .amt{font-size:12.5px;font-weight:700;width:84px;text-align:right}
+  .adnote{font-size:11px;color:var(--ink2);margin:2px 0 0 68px}
+
+  /* CLIENTS */
+  .clist{display:flex;flex-direction:column;gap:7px;max-height:300px;overflow-y:auto}
+  .cl{display:flex;align-items:center;gap:9px;padding:7px 10px;border:1px solid var(--line);border-radius:7px}
+  .cl .nm{font-weight:600;font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cl .fee{font-size:12.5px;font-weight:700}
+  .sat{width:46px;height:7px;background:#E7E4DB;border-radius:4px;overflow:hidden;flex-shrink:0}
+  .sat i{display:block;height:100%;border-radius:4px}
+
+  /* TOKENS / OP */
+  .meter{display:flex;justify-content:space-between;font-size:13px;margin-top:9px}
+  .oprow{display:flex;align-items:center;gap:12px;margin-top:7px}
+  .oprow input[type=range]{flex:1;accent-color:var(--accent);min-height:26px}
+  .oprow .amt{font-weight:700;width:42px;text-align:right}
+
+  /* NEXT HINT */
+  .nexthint{text-align:center;font-size:12px;color:var(--ink3);padding:6px 0 2px;letter-spacing:.03em}
+
+  /* LOG */
+  .log{font-size:12.5px;max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:5px}
+  .log div{padding:6px 9px;border-radius:6px;background:#F0EEE6;border-left:3px solid var(--line2)}
+  .log .good{border-left-color:var(--good)} .log .bad{border-left-color:var(--bad)} .log .warn{border-left-color:var(--warn)} .log .accent{border-left-color:var(--accent)}
+  .log .wk{color:var(--ink3);font-size:11px;margin-right:6px}
+
+  /* LESSON TOAST */
+  .lesson{border:1px solid var(--accent);background:var(--accent-soft);border-radius:9px;padding:11px 13px;font-size:13px}
+  .lesson b{color:var(--accent)}
+
+  /* MODAL */
+  .overlay{position:fixed;inset:0;background:rgba(26,24,19,.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
+  .modal{background:var(--bg);border:1px solid var(--line2);border-radius:13px;padding:28px;max-width:480px;width:100%;box-shadow:0 14px 40px rgba(0,0,0,.22);max-height:90vh;overflow-y:auto}
+  .modal h2{font-size:22px;font-weight:800;letter-spacing:-.01em;margin-bottom:10px;text-transform:none}
+  .modal p{color:var(--ink2);margin-bottom:13px;font-size:14.5px;line-height:1.55}
+  .modal p b{color:var(--ink)}
+  .acts{display:flex;gap:9px;flex-wrap:wrap;margin-top:6px}
+  .acts .btn{flex:1;min-width:130px}
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:15px 0}
+  .kpi{background:#FBFAF6;border:1px solid var(--line);border-radius:8px;padding:11px}
+  .kpi .k{font-size:10px;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
+  .kpi .v{font-weight:800;font-size:19px}
+  .neg{color:var(--bad)} .pos{color:var(--good)}
+</style>
+</head>
+<body>
+
+<header><div class="hbar">
+  <div class="logo">DELEGÁ<b>/</b>MORÍ</div>
+  <div class="hstat" id="hsWeek" hidden><span class="k">Semana</span><span class="v" id="stWeek">1</span></div>
+  <div class="hstat" id="hsCash" hidden><span class="k">Caja</span><span class="v" id="stCash">$0</span></div>
+  <div class="hstat" id="hsRev" hidden><span class="k">Factura/sem</span><span class="v" id="stRev">$0</span></div>
+  <div class="hstat" id="hsTok" hidden><span class="k">Tokens</span><span class="v" id="stTok">0</span></div>
+  <div class="hspace"></div>
+  <div class="hctrl" id="hctrl" hidden>
+    <button class="btn small" id="btnPause">⏸</button>
+    <button class="btn small" id="btnSpeed">×1</button>
+  </div>
+</div></header>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="label">Tus horas esta semana</div>
+    <div class="num"><span id="hNum">0</span><small> h/sem</small></div>
+    <div class="track">
+      <div class="fill" id="hFill" style="width:18%"></div>
+      <div class="mark goal" id="markGoal" style="left:15%"><span class="t">12h · libertad</span></div>
+      <div class="mark death" style="left:100%"><span class="t">80h · burnout</span></div>
+    </div>
+    <div class="breakdown" id="hBreak"></div>
+    <div class="goalline" id="goalLine" hidden>Meta: facturar <b style="color:var(--ink);font-weight:700">$15.000/sem</b> trabajando <b>≤12h</b>, sostenido 3 semanas. Racha: <b id="streak" style="color:var(--ink)">0/3</b></div>
+  </div>
+
+  <div class="stage" id="stage">
+
+    <!-- COLD OPEN -->
+    <div class="panel" id="pClick">
+      <h2>📥 La operación</h2>
+      <div class="hint" id="clickHint">Sos vos contra la bandeja. Cada tarea la hacés a mano.</div>
+      <button class="bigbtn" id="bigBtn" onclick="doTask()">Responder WhatsApp del cliente<span class="plus">+$40 · −1 tarea</span></button>
+      <div class="pend"><span>Tareas pendientes</span><b id="pendNum">0</b></div>
+      <div id="promptBox" hidden>
+        <div class="row mt16" style="gap:8px">
+          <button class="btn primary small grow" id="buildPrompt" onclick="buildPrompt()">Construir Prompt · $300</button>
+          <span class="small muted" id="promptCount"></span>
+        </div>
+        <div class="binfo" id="promptInfo"></div>
+      </div>
+    </div>
+
+    <!-- LESSON SLOT (reused) handled via log/toasts -->
+
+    <!-- TOKENS -->
+    <div class="panel hidden" id="pTok">
+      <h2>⚡ Tokens</h2>
+      <div class="hint">Los workers no corren con buenas intenciones. Corren con tokens.</div>
+      <div class="meter"><span>Balance</span><span class="num2" id="tokBal">0</span></div>
+      <div class="meter" id="tokBurnRow" hidden><span>Consumo</span><span id="tokBurn">0 tok/sem</span></div>
+      <div class="row mt12" style="gap:8px">
+        <button class="btn small" id="buy500" onclick="buyTokens(500,450)">+500 · <span id="p500">$450</span></button>
+        <button class="btn small" id="buy2000" onclick="buyTokens(2000,1600)">+2.000 · <span id="p2000">$1.600</span></button>
+      </div>
+    </div>
+
+    <!-- AREAS -->
+    <div class="panel hidden" id="pAreas">
+      <h2>🏗 Tu agencia</h2>
+      <div class="hint" id="areasHint">Construí workers para que las tareas se hagan sin vos.</div>
+      <div id="areasBody"></div>
+    </div>
+
+    <!-- ADS -->
+    <div class="panel hidden" id="pAds">
+      <h2>📣 Pauta semanal</h2>
+      <div class="hint">Cada canal trae clientes distintos. El CAC se mueve.</div>
+      <div id="adsBody"></div>
+    </div>
+
+    <!-- CLIENTS -->
+    <div class="panel hidden" id="pClients">
+      <h2>🧑 Clientes <span class="muted small" id="cCount"></span></h2>
+      <div class="hint">Si no cubrís su demanda, se van.</div>
+      <div class="clist mt12" id="cList"></div>
+    </div>
+
+    <!-- TEAM -->
+    <div class="panel hidden" id="pTeam">
+      <h2>👥 Tu equipo humano</h2>
+      <div class="hint">Cada persona suma capacidad, pero también un salario y 1h tuya de gestión. Despedir cuesta 4 semanas de indemnización.</div>
+      <div class="chips mt12" id="teamChips"></div>
+    </div>
+
+    <!-- OP HOURS -->
+    <div class="panel hidden" id="pOp">
+      <h2>🦸 El parche del fundador</h2>
+      <div class="hint">Tus horas tapan los agujeros que los workers no cubren. Es lo que te tiene atrapado. Bajalo apenas puedas.</div>
+      <div class="oprow mt12">
+        <input type="range" id="opHours" min="0" max="40" value="16" oninput="setOp(this.value)">
+        <span class="amt" id="opVal">16h</span>
+      </div>
+    </div>
+
+    <!-- LOG -->
+    <div class="panel hidden" id="pLog">
+      <h2>📋 Log</h2>
+      <div class="log mt12" id="log"></div>
+    </div>
+
+    <div class="nexthint" id="nextHint"></div>
+  </div>
+</div>
+
+<!-- INTRO / EVENT / END MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal">
+    <h2>Delegá o Morí</h2>
+    <p>Tenés una agencia de marketing y estás metido en <b>todo</b>: los WhatsApp, los presupuestos, los reportes, las piezas.</p>
+    <p><b>El objetivo no es facturar más. Es trabajar menos.</b> Empezás haciendo cada tarea a mano. Vas a delegar en workers de IA, subiendo los 5 niveles, hasta despedirte de tu propia operación.</p>
+    <p>Ganás con <b style="color:var(--good)">$15.000/sem y ≤12h tuyas</b>, 3 semanas seguidas. Perdés si quebrás o llegás a <b style="color:var(--bad)">80h</b>.</p>
+    <div class="acts"><button class="btn primary" onclick="startGame()">Empezar a laburar</button></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ============================================================ DATA
+const AREAS = [
+  {id:'o', name:'Operaciones', desc:'Entregables, piezas, campañas'},
+  {id:'g', name:'Growth',      desc:'Contenido, ads, leads'},
+  {id:'a', name:'Admin',       desc:'Facturación, reportes, contratos'},
+];
+// Passive workers, by WORKIA level (2..5). Level 1 (Prompt) is a manual click-upgrade.
+const LV = {
+  2:{name:'Asistente',    cost:1200,  tok:15,  cap:14,  sup:1.4, note:'maneja una categoría'},
+  3:{name:'Workflow',     cost:3500,  tok:40,  cap:34,  sup:0.9, note:'encadena tareas, no intervenís'},
+  4:{name:'Agente',       cost:9000,  tok:110, cap:80,  sup:0.5, note:'decide solo · puede alucinar'},
+  5:{name:'Orquestador',  cost:22000, tok:260, cap:190, sup:0.2, note:'agentes sobre agentes · −40% sup.'},
+};
+const PROMPT = {cost:300, perClickTok:1};
+const CHANNELS = [
+  {id:'meta',   name:'Meta',   cac:850,  feeMin:900,  feeMax:1800, sat:70, tag:''},
+  {id:'google', name:'Google', cac:1350, feeMin:1600, feeMax:3100, sat:76, tag:'premium'},
+  {id:'tiktok', name:'TikTok', cac:480,  feeMin:500,  feeMax:1100, sat:54, tag:'frágiles'},
+];
+const TASK_COPY = [
+  ['Responder WhatsApp del cliente', 40],
+  ['Mandar un presupuesto', 55],
+  ['Subir un posteo', 35],
+  ['Armar un reporte', 60],
+  ['Editar una pieza', 45],
+  ['Cargar una factura', 30],
+];
+const CLIENT_NAMES = ['Dental Norte','Ferretería Paz','Estudio Lex','Gimnasio K2','Pastas Doña Rosa','Inmobiliaria Sur','Clínica Vita','Logística Rápido','Vinos del Valle','Indumentaria Ona','Tech Andina','Constructora MD','Café Borges','Seguros Delta','Agro Pampa','Hotel Mirador','Academia Inglés Ya','Pet Shop Bigotes','Solar Energía','Distribuidora Olmos'];
+const HUMAN_NAMES = ['Sofi','Marto','Caro','Nico','Flor','Juampi','Lu','Tomi','Vicky','Fede'];
+
+// ============================================================ STATE
+let S=null, timer=null, evtOpen=false, taskIdx=0;
+
+function freshState(){ return {
+  phase:0, unlocked:{}, lessons:{},
+  cash:600, tokens:0, week:1,
+  pending:3, tasksDone:0, clicks:0,
+  clickYield:1, prompts:0,
+  clients:[ mkClient('Dental Norte',1300,70), mkClient('Ferretería Paz',1250,72) ],
+  workers:[], employees:[], ads:{meta:0,google:0,tiktok:0}, opHours:16,
+  tokenMult:1,tokenWeeks:0, cacMult:{meta:1,google:1,tiktok:1},cacWeeks:0, sevMult:1,sevWeeks:0,
+  streak:0, lastRev:0, nextEvt:3, gotGuru:false, over:false,
+  paused:false, speed:1,
+};}
+function mkClient(name,fee,sat){
+  const d=fee/150;
+  return {id:rid(), name, fee:Math.round(fee), sat,
+    dem:{o:+(d*0.5).toFixed(1), g:+(d*0.3).toFixed(1), a:+(d*0.2).toFixed(1)}};
+}
+function mkEmp(area){ return {id:rid(), name:pick(HUMAN_NAMES), area, salary:700, cap:11}; }
+const rid=()=>Math.random().toString(36).slice(2);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const fmt=n=>'$'+Math.round(n).toLocaleString('es-AR');
+const $=id=>document.getElementById(id);
+const U=f=>!!S.unlocked[f];
+function unlock(f){ if(S.unlocked[f])return false; S.unlocked[f]=true; return true; }
+
+// ============================================================ CALC
+function visAreas(){ return U('areas3') ? AREAS : [AREAS[0]]; }
+function demOf(c,a){
+  if(U('areas3')) return c.dem[a];
+  return a==='o' ? (c.dem.o+c.dem.g+c.dem.a) : 0;
+}
+function tokNeed(){ return S.workers.reduce((s,w)=>s+LV[w.lv].tok,0); }
+function calcSup(){
+  let t=0;
+  for(const a of visAreas()){
+    const ws=S.workers.filter(w=>w.area===a.id);
+    const orch=ws.some(w=>w.lv===5);
+    t+=ws.reduce((s,w)=>s+LV[w.lv].sup*(orch&&w.lv<5?0.6:1),0);
+  }
+  return t;
+}
+function calcHours(){
+  if(!U('autorun')){
+    // Manual phase: the more backlog you carry and the more you've ground, the deeper the trap.
+    return 8 + Math.min(30, S.tasksDone*0.65 + S.pending*0.7);
+  }
+  return 8 + S.employees.length*1 + calcSup() + S.opHours;
+}
+function areaStats(){
+  const out={};
+  const need=tokNeed();
+  const eff=need>0?Math.min(1,S.tokens/need):1;
+  for(const a of visAreas()){
+    const dem=S.clients.reduce((s,c)=>s+demOf(c,a.id),0);
+    const hc=S.employees.filter(e=>e.area===a.id).reduce((s,e)=>s+e.cap,0);
+    const ac=S.workers.filter(w=>w.area===a.id).reduce((s,w)=>s+LV[w.lv].cap,0)*eff;
+    out[a.id]={dem, hc, ac, cap:hc+ac, you:0};
+  }
+  // distribute founder hours to biggest deficit
+  let pool=S.opHours*1.5;
+  const ids=visAreas().map(a=>a.id).sort((x,y)=>(out[y].dem-out[y].cap)-(out[x].dem-out[x].cap));
+  for(const id of ids){
+    const def=Math.max(0,out[id].dem-out[id].cap);
+    const add=Math.min(def,pool); out[id].you=add; out[id].cap+=add; pool-=add;
+  }
+  out._eff=eff; out._need=need;
+  return out;
+}
+
+// ============================================================ MANUAL LOOP
+function doTask(){
+  if(S.over) return;
+  let y=1;
+  if(S.prompts>0){
+    const cost=S.prompts*PROMPT.perClickTok;
+    if(S.tokens>=cost){ S.tokens-=cost; y=S.clickYield; }
+    else { y=1; } // sin tokens, rendís como a mano
+  }
+  S.pending=Math.max(0,S.pending-y);
+  S.tasksDone+=1; S.clicks+=1;
+  S.cash += TASK_COPY[taskIdx][1];
+  // rotate microcopy occasionally
+  if(S.clicks%3===0){ taskIdx=(taskIdx+1)%TASK_COPY.length; }
+  checkUnlocks();
+  render();
+}
+// backlog pressure in manual phase
+function manualPressure(){
+  if(S.over || U('autorun')) return;
+  // tasks pile up faster than comfortable
+  S.pending += 1;
+  if(S.pending>14) S.pending=14;
+  checkUnlocks(); render();
+}
+
+// ============================================================ UNLOCKS
+function lesson(key,html){ if(S.lessons[key])return; S.lessons[key]=true; logMsg('💡 '+html,'accent'); }
+
+function checkUnlocks(){
+  // Phase 1: Prompt
+  if(!U('prompt') && S.tasksDone>=6){
+    unlock('prompt'); unlock('tokens'); S.tokens=60; S.phase=1;
+    showPanel('pTok'); showPanel('pLog');
+    $('promptBox').hidden=false;
+    logMsg('Se desbloqueó el <b>Nivel 1 · Prompt</b>. Tu primer aliado de IA.','accent');
+    lesson('l_prompt','El <b>Prompt</b> no te saca del medio. Te hace más rápido. Seguís clickeando vos.');
+  }
+  // Phase 2: Asistente available
+  if(!U('assistant') && S.tasksDone>=20){
+    unlock('assistant'); unlock('clients'); S.phase=2;
+    showPanel('pAreas'); showPanel('pClients'); showPanel('pOp');
+    buildAreas();
+    logMsg('Se desbloqueó el <b>Nivel 2 · Asistente</b>: el primer worker que trabaja <b>solo</b>. Construilo en tu agencia.','accent');
+    lesson('l_assist','Hasta acá ejecutabas vos. El <b>Asistente</b> ejecuta por vos. Ahí empieza la delegación de verdad.');
+  }
+  // Autorun starts when first passive worker exists
+  if(!U('autorun') && S.workers.length>0){
+    unlock('autorun'); clearInterval(pressureTimer);
+    $('pClick').classList.add('hidden');
+    $('hsWeek').hidden=false; $('hsRev').hidden=false; $('hctrl').hidden=false;
+    $('goalLine').hidden=false;
+    S.opHours=16; $('opHours').value=16;
+    logMsg('Construiste tu primer worker autónomo. <b>Las semanas ahora corren solas.</b> Ya no clickeás tareas: supervisás.','good');
+    lesson('l_auto','Soltaste el mouse. El negocio empezó a moverse sin vos. Ese es el salto.');
+    startTimer();
+  }
+}
+function checkWeeklyUnlocks(){
+  if(!U('areas3') && (S.week>=3 || S.clients.length>=4)){
+    unlock('areas3'); unlock('ads');
+    showPanel('pAds'); buildAreas(); buildAds();
+    logMsg('Crecés. Ahora la demanda se separa en <b>Operaciones, Growth y Admin</b>, y podés meter <b>pauta</b> para traer clientes.','accent');
+    lesson('l_areas','Más clientes = más fuegos en más áreas. Un worker no alcanza: necesitás un sistema por área.');
+  }
+  if(!U('workflow') && S.week>=5){
+    unlock('workflow'); buildAreas();
+    logMsg('Se desbloqueó el <b>Nivel 3 · Workflow</b>: encadena tareas, no intervenís.','accent');
+    lesson('l_wf','El <b>Workflow</b> conecta tareas en cadena. Dejás de tocar el proceso pieza por pieza.');
+  }
+  if(!U('humans') && S.week>=5){
+    unlock('humans'); S.employees=[mkEmp('o'),mkEmp('g'),mkEmp('a')];
+    showPanel('pTeam');
+    logMsg('Tu equipo humano que armaste mientras crecías ahora pesa: <b>salarios + horas tuyas de gestión</b>. Vas a tener que decidir a quién soltar.','warn');
+    lesson('l_humans','Delegar en sistemas a veces significa soltar gente. Duele, pero el héroe-cuello-de-botella muere primero.');
+  }
+  if(!U('agent') && S.week>=8){
+    unlock('agent'); buildAreas();
+    logMsg('Se desbloqueó el <b>Nivel 4 · Agente</b>: decide solo, gran capacidad. Cuidado, a veces alucina.','accent');
+    lesson('l_agent','El <b>Agente</b> es potente pero no es fe. Necesita supervisión, no devoción.');
+  }
+  if(!U('orch') && S.week>=11){
+    unlock('orch'); buildAreas();
+    logMsg('Se desbloqueó el <b>Nivel 5 · Orquestador</b>: agentes manejando agentes. El endgame.','accent');
+    lesson('l_orch','El <b>Orquestador</b> es el techo: tu operación se maneja sola. Acá tus horas se desploman.');
+  }
+}
+
+// ============================================================ WEEKLY TICK
+function tick(){
+  if(S.over||evtOpen||!U('autorun')) return;
+  S.week++;
+  if(S.tokenWeeks>0&&--S.tokenWeeks===0){S.tokenMult=1;logMsg('El precio de los tokens se normalizó.','');}
+  if(S.cacWeeks>0&&--S.cacWeeks===0){S.cacMult={meta:1,google:1,tiktok:1};logMsg('Los CPM se normalizaron.','');}
+  if(S.sevWeeks>0&&--S.sevWeeks===0){S.sevMult=1;logMsg('Se cerró la ventana de indemnizaciones reducidas.','');}
+
+  const st=areaStats();
+  S.tokens=Math.max(0,S.tokens-st._need);
+  if(st._eff<1&&st._need>0) logMsg('⚠️ Sin tokens: tus workers rinden al '+Math.round(st._eff*100)+'%.','warn');
+
+  const rev=S.clients.reduce((s,c)=>s+c.fee,0);
+  const sal=S.employees.reduce((s,e)=>s+e.salary,0);
+  const ad=S.ads.meta+S.ads.google+S.ads.tiktok;
+  S.cash+=rev-sal-ad; S.lastRev=rev;
+
+  // satisfaction & churn
+  for(const c of [...S.clients]){
+    let cov=0,w=0;
+    for(const a of visAreas()){
+      const d=demOf(c,a.id);
+      const r=st[a.id].dem>0?Math.min(1,st[a.id].cap/st[a.id].dem):1;
+      cov+=r*d; w+=d;
+    }
+    const ratio=w>0?cov/w:1;
+    c.sat=Math.max(0,Math.min(100,c.sat+(ratio-0.9)*40));
+    if(c.sat<40 && Math.random()<(45-c.sat)/120){
+      S.clients=S.clients.filter(x=>x.id!==c.id);
+      logMsg('💔 '+c.name+' se fue ('+fmt(c.fee)+'/sem). No le entregabas.','bad');
+    }
+  }
+  // acquisition
+  if(U('ads')) for(const ch of CHANNELS){
+    const sp=S.ads[ch.id]; if(sp<=0)continue;
+    const exp=sp/(ch.cac*S.cacMult[ch.id]);
+    let n=Math.floor(exp)+(Math.random()<exp%1?1:0);
+    for(let i=0;i<n;i++){
+      const fee=ch.feeMin+Math.random()*(ch.feeMax-ch.feeMin);
+      const c=mkClient(pick(CLIENT_NAMES),fee,ch.sat+Math.random()*10);
+      S.clients.push(c);
+      logMsg('🎉 Cliente nuevo vía '+ch.name+': '+c.name+' ('+fmt(c.fee)+'/sem).','good');
+    }
+  }
+
+  checkWeeklyUnlocks();
+
+  const h=calcHours();
+  if(h>=80){ endGame(false,'burnout',h); return; }
+  if(S.cash<0){ endGame(false,'quiebra',h); return; }
+  if(rev>=15000 && h<=12){
+    S.streak++;
+    if(S.streak>=3){ endGame(true,'',h); return; }
+    logMsg('✅ Semana ganadora: '+fmt(rev)+' con '+h.toFixed(1)+'h. Racha '+S.streak+'/3.','good');
+  } else if(S.streak>0){ S.streak=0; logMsg('Se cortó la racha. 0/3.','warn'); }
+
+  if(S.cash<3000&&S.cash>=0) logMsg('⚠️ Caja crítica: '+fmt(S.cash)+'.','warn');
+  if(h>=60) logMsg('🔥 '+h.toFixed(0)+'h/sem. Zona de burnout. Delegá o morí.','warn');
+
+  if(--S.nextEvt<=0){ S.nextEvt=3+Math.floor(Math.random()*4); fireEvent(); }
+  render();
+}
+
+// ============================================================ EVENTS
+function fireEvent(){
+  const avgSat=S.clients.length?S.clients.reduce((a,c)=>a+c.sat,0)/S.clients.length:0;
+  const pool=[];
+  if(!S.gotGuru) pool.push('guru');
+  pool.push('tokenspike','workshop');
+  if(U('ads')) pool.push('cpm');
+  if(S.employees.length>0) pool.push('renuncia','reforma');
+  if(S.workers.some(w=>w.lv>=4)) pool.push('alucina');
+  if(avgSat>72 && S.clients.length>=3) pool.push('referido');
+  if(!pool.length){ S.nextEvt=2; return; }
+  const e=pick(pool);
+
+  if(e==='guru'){ S.gotGuru=true; showEvent('🧙 Apareció un gurú','"Con mi curso de PROMPTS MÁGICOS ($1.500) tus workers rinden EL DOBLE. Cupos limitados, crack."',[
+    {t:'Comprar ($1.500)',f:()=>{S.cash-=1500;logMsg('Compraste el curso. Era humo. No pasó nada. −$1.500.','bad');}},
+    {t:'Ignorarlo',f:()=>{logMsg('Ignoraste al gurú. Los sistemas le ganan al hype. Siempre.','good');}}
+  ]); }
+  else if(e==='cpm'){ S.cacMult.meta=1.5;S.cacWeeks=5; showEvent('📉 Subió el CPM en Meta','Cambio de algoritmo. Adquirir por Meta cuesta +50% por 5 semanas.',[{t:'Ajusto la pauta',f:()=>{}}]); }
+  else if(e==='tokenspike'){ S.tokenMult=2;S.tokenWeeks=4; showEvent('⚡ Crisis de cómputo','Los proveedores duplicaron precios. Tokens ×2 por 4 semanas.',[{t:'A bancársela',f:()=>{}}]); }
+  else if(e==='workshop'){ showEvent('💼 Te piden un workshop','Un cliente grande paga $3.000 por un taller presencial. Pero te come 8 horas tuyas.',[
+    {t:'Aceptar (+$3.000, +8h)',f:()=>{S.cash+=3000;S.opHours=Math.min(40,S.opHours+8);$('opHours').value=S.opHours;logMsg('Diste el workshop. +$3.000, pero volviste a la trampa del tiempo por plata.','warn');}},
+    {t:'Rechazar',f:()=>{logMsg('Rechazaste el workshop. Tu tiempo no está a la venta.','good');}}
+  ]); }
+  else if(e==='renuncia'&&S.employees.length){ const emp=pick(S.employees);
+    showEvent('👋 '+emp.name+' renunció','Se va a un corporativo. Sin indemnización, pero perdés su capacidad en '+AREAS.find(a=>a.id===emp.area).name+'.',[
+    {t:'Que le vaya bien',f:()=>{S.employees=S.employees.filter(x=>x.id!==emp.id);}}]); }
+  else if(e==='alucina'){ showEvent('🤖 Tu Agente alucinó','Mandó un reporte con números inventados a un cliente. Hay incendio.',[
+    {t:'Auditoría ($2.000)',f:()=>{S.cash-=2000;logMsg('Pagaste auditoría. Cliente retenido. Los Agentes necesitan supervisión, no fe.','warn');}},
+    {t:'No hacer nada',f:()=>{if(S.clients.length){const c=pick(S.clients);S.clients=S.clients.filter(x=>x.id!==c.id);logMsg('💔 '+c.name+' se fue por el papelón del Agente.','bad');}}}
+  ]); }
+  else if(e==='referido'){ const c=mkClient(pick(CLIENT_NAMES),2000+Math.random()*1500,80);S.clients.push(c);
+    showEvent('🤝 Te llegó un referido','Tus clientes están contentos y te recomendaron. '+c.name+' entra sin costo ('+fmt(c.fee)+'/sem).',[{t:'Bienvenido',f:()=>{}}]); }
+  else if(e==='reforma'){ S.sevMult=0.5;S.sevWeeks=6; showEvent('🏛 Reforma laboral','Ventana de 6 semanas con indemnizaciones al 50%. Si ibas a reestructurar, es ahora.',[{t:'Tomo nota',f:()=>{}}]); }
+  else { S.nextEvt=2; }
+}
+function showEvent(title,body,actions){
+  evtOpen=true;
+  $('modal').innerHTML='<h2>'+title+'</h2><p>'+body+'</p><div class="acts">'+
+    actions.map((a,i)=>'<button class="btn '+(i===0?'primary':'')+'" onclick="evtAct('+i+')">'+a.t+'</button>').join('')+'</div>';
+  window._acts=actions; $('overlay').style.display='flex';
+}
+function evtAct(i){ window._acts[i].f(); evtOpen=false; $('overlay').style.display='none'; checkUnlocks(); render(); }
+
+// ============================================================ ACTIONS
+function buildPrompt(){
+  if(S.cash<PROMPT.cost) return;
+  S.cash-=PROMPT.cost; S.prompts+=1; S.clickYield=1+S.prompts*2;
+  logMsg('🛠 Construiste un Prompt. Cada click rinde '+S.clickYield+' tareas (gasta '+S.prompts+' tok).','good');
+  render();
+}
+function buildWorker(areaId){
+  const lv=+$('sel-'+areaId).value, L=LV[lv];
+  if(S.cash<L.cost) return;
+  S.cash-=L.cost; S.workers.push({id:rid(),area:areaId,lv});
+  logMsg('🛠 '+L.name+' (N'+lv+') en '+AREAS.find(a=>a.id===areaId).name+'. −'+fmt(L.cost)+'.','good');
+  checkUnlocks(); render();
+}
+function scrapWorker(id){
+  const w=S.workers.find(x=>x.id===id); if(!w)return;
+  S.workers=S.workers.filter(x=>x.id!==id);
+  logMsg('🗑 Diste de baja un '+LV[w.lv].name+'. Sin indemnización: es la gracia.','');
+  render();
+}
+function fireEmp(id){
+  const e=S.employees.find(x=>x.id===id); if(!e)return;
+  const sev=Math.round(e.salary*4*S.sevMult);
+  if(!confirm('Despedir a '+e.name+' cuesta '+fmt(sev)+' de indemnización. ¿Confirmar?'))return;
+  S.cash-=sev; S.employees=S.employees.filter(x=>x.id!==id);
+  logMsg('✂️ Despediste a '+e.name+'. Indemnización '+fmt(sev)+'. Una persona menos que gestionar.','warn');
+  render();
+}
+function buyTokens(n,base){
+  const price=Math.round(base*S.tokenMult);
+  if(S.cash<price)return;
+  S.cash-=price; S.tokens+=n;
+  logMsg('⚡ Compraste '+n+' tokens por '+fmt(price)+'.','');
+  render();
+}
+function setOp(v){ S.opHours=+v; render(); }
+
+// ============================================================ END
+function endGame(won,reason,h){
+  S.over=true; clearInterval(timer); evtOpen=true;
+  const mrr=S.lastRev*4; let title,body;
+  if(won){
+    title='🏆 Te despediste de tu propia operación';
+    body='<p>Facturás <b>'+fmt(S.lastRev)+'/sem</b> ('+fmt(mrr)+' MRR) trabajando <b style="color:var(--good)">'+h.toFixed(1)+'h</b>. El negocio funciona sin vos en el medio.</p><p><b>Eso no es magia. Es un sistema.</b> Personas + workers de IA, cada uno en su nivel.</p>';
+  } else if(reason==='burnout'){
+    title='🔥 Burnout';
+    body='<p>Llegaste a <b style="color:var(--bad)">'+h.toFixed(0)+'h semanales</b>. Tu cuerpo dijo basta en la semana '+S.week+'.</p><p>Quisiste ser el héroe y terminaste siendo el cuello de botella. <b>El hub muere primero.</b></p>';
+  } else {
+    title='📉 Quiebra';
+    body='<p>Te quedaste sin caja en la semana '+S.week+'. Facturabas '+fmt(S.lastRev)+'/sem pero la estructura te comió.</p><p>Crecer sin sistema es una forma más cara de fundirse.</p>';
+  }
+  $('modal').innerHTML='<h2>'+title+'</h2>'+body+
+    '<div class="kpis">'+
+    '<div class="kpi"><div class="k">Semanas</div><div class="v">'+S.week+'</div></div>'+
+    '<div class="kpi"><div class="k">Clicks a mano</div><div class="v">'+S.clicks+'</div></div>'+
+    '<div class="kpi"><div class="k">Clientes</div><div class="v">'+S.clients.length+'</div></div>'+
+    '<div class="kpi"><div class="k">Workers IA</div><div class="v">'+S.workers.length+'</div></div>'+
+    '</div>'+
+    (won?'<p class="small muted">¿Querés que esto pase en tu negocio de verdad? Eso es lo que hago.</p>':'')+
+    '<div class="acts">'+
+    '<button class="btn" onclick="share()">Compartir resultado</button>'+
+    '<button class="btn primary" onclick="restart()">Jugar de nuevo</button></div>';
+  $('overlay').style.display='flex';
+}
+function share(){
+  const won=S.streak>=3;
+  const txt=won
+    ? 'Me despedí de mi propia operación en '+S.week+' semanas jugando Delegá o Morí 🏆 ¿Llegás al Orquestador?'
+    : 'Aguanté '+S.week+' semanas en Delegá o Morí antes de '+(S.cash<0?'fundirme':'quemarme')+' 🔥 ¿Podés más?';
+  if(navigator.clipboard) navigator.clipboard.writeText(txt).then(()=>alert('Copiado. Pegalo donde quieras.'),()=>{});
+}
+
+// ============================================================ UI
+function showPanel(id){ const el=$(id); if(!el)return; el.classList.remove('hidden'); el.classList.add('glow'); setTimeout(()=>el.classList.remove('glow'),600); }
+
+function buildAreas(){
+  const opts=lv=>LV[lv]?`<option value="${lv}">N${lv} ${LV[lv].name} · ${fmt(LV[lv].cost)}</option>`:'';
+  let avail=[2]; if(U('workflow'))avail.push(3); if(U('agent'))avail.push(4); if(U('orch'))avail.push(5);
+  $('areasBody').innerHTML=visAreas().map(a=>`
+    <div class="area">
+      <div class="row"><span class="nm grow">${a.name}</span><span class="small muted" id="ratio-${a.id}"></span></div>
+      <div class="small muted">${a.desc}</div>
+      <div class="capwrap">
+        <div class="capbar"><i id="bar-${a.id}"></i></div>
+        <div class="capline"><span id="dem-${a.id}">dem 0</span><span id="cap-${a.id}">cap 0</span></div>
+      </div>
+      <div class="chips" id="chips-${a.id}"></div>
+      <div class="buildrow">
+        <select id="sel-${a.id}" onchange="render()">${avail.map(opts).join('')}</select>
+        <button class="btn primary small" id="build-${a.id}" onclick="buildWorker('${a.id}')">Construir</button>
+      </div>
+      <div class="binfo" id="binfo-${a.id}"></div>
+    </div>`).join('');
+}
+function buildAds(){
+  $('adsBody').innerHTML=CHANNELS.map(ch=>`
+    <div class="adrow">
+      <span class="ch">${ch.name}</span>
+      <input type="range" id="ad-${ch.id}" min="0" max="5000" step="250" value="${S.ads[ch.id]}" oninput="S.ads['${ch.id}']=+this.value;render()">
+      <span class="amt" id="adv-${ch.id}"></span>
+    </div>
+    <div class="adnote" id="adn-${ch.id}"></div>`).join('');
+}
+
+function render(){
+  if(!S)return;
+  // header
+  $('stWeek').textContent=S.week;
+  $('stCash').textContent=fmt(S.cash); $('stCash').className='v'+(S.cash<3000?' neg':'');
+  $('stRev').textContent=fmt(S.clients.reduce((a,c)=>a+c.fee,0));
+  $('stTok').textContent=Math.round(S.tokens);
+  $('hsCash').hidden=!U('prompt'); $('hsTok').hidden=!U('tokens');
+
+  // hero
+  const h=calcHours();
+  $('hNum').textContent=h.toFixed(1);
+  $('hFill').style.width=Math.min(100,h/80*100)+'%';
+  $('hFill').style.background=h<=12?'var(--good)':h<=35?'var(--accent)':h<=60?'#D2691E':'var(--bad)';
+  if(U('autorun'))
+    $('hBreak').textContent='8h dirección + '+S.employees.length+'h gestión + '+calcSup().toFixed(1)+'h supervisión + '+S.opHours+'h operación manual';
+  else
+    $('hBreak').textContent='Cada tarea que hacés a mano te hunde un poco más. Así no escala.';
+  $('streak').textContent=S.streak+'/3';
+
+  // cold open
+  if(!U('autorun')){
+    $('bigBtn').innerHTML=TASK_COPY[taskIdx][0]+'<span class="plus">+'+fmt(TASK_COPY[taskIdx][1]).replace('$','$')+' · −'+(S.prompts>0&&S.tokens>=S.prompts*PROMPT.perClickTok?S.clickYield:1)+' tarea'+((S.prompts>0&&S.tokens>=S.prompts*PROMPT.perClickTok&&S.clickYield>1)?'s':'')+'</span>';
+    const pn=$('pendNum'); pn.textContent=Math.round(S.pending); pn.className=S.pending>=10?'hot':'';
+    $('clickHint').textContent=S.prompts>0?'Con Prompt rendís más por click. Pero seguís clickeando vos.':'Sos vos contra la bandeja. Cada tarea la hacés a mano.';
+  }
+  if(U('prompt')){
+    $('buildPrompt').disabled=S.cash<PROMPT.cost;
+    $('promptCount').textContent=S.prompts>0?S.prompts+'× Prompt · '+S.clickYield+'/click':'';
+    $('promptInfo').textContent=S.prompts>0?('Consume '+S.prompts*PROMPT.perClickTok+' tok por click'):('Nivel 1. Te hace más rápido, no te reemplaza.');
+  }
+
+  // tokens
+  $('tokBal').textContent=Math.round(S.tokens)+(areaStats()._eff<1?' ⚠️':'');
+  if(U('autorun')){ $('tokBurnRow').hidden=false; $('tokBurn').textContent=tokNeed()+' tok/sem'; }
+  $('p500').textContent=fmt(450*S.tokenMult); $('p2000').textContent=fmt(1600*S.tokenMult);
+  $('buy500').disabled=S.cash<450*S.tokenMult; $('buy2000').disabled=S.cash<1600*S.tokenMult;
+
+  // areas
+  if(U('assistant')){
+    const st=areaStats();
+    let avail=[2]; if(U('workflow'))avail.push(3); if(U('agent'))avail.push(4); if(U('orch'))avail.push(5);
+    for(const a of visAreas()){
+      const x=st[a.id]; if(!x)continue;
+      const ratio=x.dem>0?Math.min(1,x.cap/x.dem):1;
+      $('dem-'+a.id).textContent='dem '+x.dem.toFixed(1);
+      $('cap-'+a.id).textContent='cap '+x.cap.toFixed(1)+(x.you>0?' (+'+x.you.toFixed(1)+' tuyas)':'');
+      const bar=$('bar-'+a.id); bar.style.width=(ratio*100)+'%';
+      bar.style.background=ratio>=1?'var(--good)':ratio>=0.8?'var(--accent)':'var(--bad)';
+      const rEl=$('ratio-'+a.id); rEl.textContent=ratio>=1?'OK':Math.round(ratio*100)+'%'; rEl.style.color=ratio>=1?'var(--good)':'var(--bad)';
+      const emps=S.employees.filter(e=>e.area===a.id).map(e=>`<span class="chip human">👤 ${e.name} <span class="x" onclick="fireEmp('${e.id}')" title="Despedir">✕</span></span>`).join('');
+      const ws=S.workers.filter(w=>w.area===a.id).map(w=>`<span class="chip">🤖 N${w.lv} ${LV[w.lv].name} <span class="x" onclick="scrapWorker('${w.id}')" title="Baja">✕</span></span>`).join('');
+      $('chips-'+a.id).innerHTML=emps+ws||'<span class="small" style="color:var(--ink3)">Vacío. Acá se acumulan tareas.</span>';
+      const sel=$('sel-'+a.id); const L=LV[+sel.value];
+      $('binfo-'+a.id).textContent=L?(fmt(L.cost)+' · '+L.tok+' tok/sem · cap '+L.cap+' · '+L.note):'';
+      $('build-'+a.id).disabled=!L||S.cash<L.cost;
+    }
+  }
+
+  // clients
+  if(U('clients')){
+    $('cCount').textContent='('+S.clients.length+')';
+    $('cList').innerHTML=S.clients.map(c=>{
+      const col=c.sat>=65?'var(--good)':c.sat>=40?'var(--warn)':'var(--bad)';
+      return `<div class="cl"><span class="nm">${c.name}</span><span class="fee">${fmt(c.fee)}</span><span class="sat" title="Satisfacción ${Math.round(c.sat)}%"><i style="width:${c.sat}%;background:${col}"></i></span></div>`;
+    }).join('')||'<div class="small" style="color:var(--ink3)">Sin clientes.</div>';
+  }
+
+  // team
+  if(U('humans')){
+    $('teamChips').innerHTML=S.employees.map(e=>`<span class="chip human">👤 ${e.name} · ${AREAS.find(a=>a.id===e.area).name} · $700/sem <span class="x" onclick="fireEmp('${e.id}')" title="Despedir">✕</span></span>`).join('')||'<span class="small" style="color:var(--ink3)">Sin equipo humano.</span>';
+  }
+
+  // ads
+  if(U('ads')) for(const ch of CHANNELS){
+    $('adv-'+ch.id).textContent=fmt(S.ads[ch.id])+'/sem';
+    $('adn-'+ch.id).textContent='CAC ~'+fmt(ch.cac*S.cacMult[ch.id])+' · fee '+fmt(ch.feeMin)+'–'+fmt(ch.feeMax)+(ch.tag?' · '+ch.tag:'');
+  }
+
+  // op
+  $('opVal').textContent=S.opHours+'h';
+
+  // next hint
+  $('nextHint').textContent=nextTeaser();
+}
+function nextTeaser(){
+  if(!U('prompt')) return '??? · hacé unas cuantas tareas y algo se va a desbloquear';
+  if(!U('assistant')) return '??? · seguí, hay una forma de que esto lo haga otro';
+  if(!U('autorun')) return '??? · construí tu primer Asistente para soltar el mouse';
+  if(!U('areas3')) return '??? · cuando crezcas, la cosa se divide en áreas';
+  if(!U('workflow')) return '??? · Nivel 3 en camino';
+  if(!U('agent')) return '??? · Nivel 4 en camino';
+  if(!U('orch')) return '??? · el Orquestador te espera';
+  return '';
+}
+
+// ============================================================ LOG
+function logMsg(msg,cls){
+  const el=document.createElement('div'); if(cls)el.className=cls;
+  el.innerHTML='<span class="wk">'+(U('autorun')?'S'+S.week:'·')+'</span>'+msg;
+  $('log').prepend(el);
+  while($('log').children.length>40) $('log').lastChild.remove();
+}
+
+// ============================================================ LIFECYCLE
+function startTimer(){ clearInterval(timer); if(!U('autorun'))return; timer=setInterval(()=>{ if(!S.paused)tick(); },4200/S.speed); }
+let pressureTimer=null;
+function startPressure(){ clearInterval(pressureTimer); pressureTimer=setInterval(manualPressure,2600); }
+
+function resetUI(){
+  ['pTok','pAreas','pAds','pClients','pTeam','pOp','pLog'].forEach(id=>$(id).classList.add('hidden'));
+  $('pClick').classList.remove('hidden');
+  ['hsWeek','hsCash','hsRev','hsTok','hctrl','goalLine','promptBox','tokBurnRow'].forEach(id=>$(id).hidden=true);
+  $('log').innerHTML=''; $('areasBody').innerHTML=''; $('adsBody').innerHTML='';
+  $('btnPause').textContent='⏸';
+}
+function startGame(){
+  clearInterval(timer); clearInterval(pressureTimer);
+  evtOpen=false; $('overlay').style.display='none';
+  S=freshState(); taskIdx=0;
+  resetUI();
+  render(); startPressure();
+  logMsg('Arrancás solo, con 2 clientes y la bandeja llena. Suerte.','');
+}
+function restart(){ startGame(); }
+
+$('btnPause').onclick=()=>{ S.paused=!S.paused; $('btnPause').textContent=S.paused?'▶':'⏸'; };
+$('btnSpeed').onclick=()=>{ S.speed=S.speed===1?2:1; $('btnSpeed').textContent='×'+S.speed; startTimer(); };
+
+// show intro on load
+$('overlay').style.display='flex';
+</script>
+</body>
+</html>
