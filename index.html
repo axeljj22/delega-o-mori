@@ -434,7 +434,7 @@ function dateOf(w){ const d=new Date(EPOCH.getTime()+(w-1)*7*864e5); return d.ge
 function provStats(){ return S.provPhase&&PROV_STATS[S.provPhase]?PROV_STATS[S.provPhase][S.provider||'openai']:{tok:1,asst:1,ag:1}; }
 function subWeeklyCost(){
   if(!U('tokens')) return 0;
-  const heads=totalEmps()+S.mgr+(S.rh||0);
+  const heads=totalEmps()+S.mgr; // totalEmps() ya incluye rh e implem
   const goHeads=S.emps.g.jr+S.emps.g.sr+S.emps.o.jr+S.emps.o.sr;
   return (S.subs&&S.subs.plus?40*heads:0)+(S.subs&&S.subs.magnific?35*goHeads:0)+(S.subs&&S.subs.cowork?80*heads:0);
 }
@@ -1423,9 +1423,9 @@ function render(){
   // areas counter header
   if(U('areas')&&$('aCount')){
     const counts=[];
-    for(const lv of [2,3,5]){const n=cntLv(lv);if(n)counts.push(`N${lv}×${n}`);}
-    const n4=cntLv(4),n4n=cntN8n();
-    if(n4)counts.push(`N4×${n4}`); if(n4n)counts.push(`N4n×${n4n}`);
+    for(const lv of [2,3]){const n=cntLv(lv);if(n)counts.push(`N${lv}×${n}`);}
+    const n4=cntLv(4),n4n=cntN8n(),n5=cntLv(5);
+    if(n4)counts.push(`N4×${n4}`); if(n4n)counts.push(`N4n×${n4n}`); if(n5)counts.push(`N5×${n5}`);
     $('aCount').textContent=counts.length?'· '+counts.join(' · '):'';
   }
 
@@ -1535,7 +1535,7 @@ function render(){
         const on=S.subs&&S.subs[sub.id];
         const since=S.subSince&&S.subSince[sub.id]||0;
         const canOff=on&&S.week-since>=4;
-        const heads=totalEmps()+S.mgr+(S.rh||0);
+        const heads=totalEmps()+S.mgr; // totalEmps() ya incluye rh e implem
         const goH=S.emps.g.jr+S.emps.g.sr+S.emps.o.jr+S.emps.o.sr;
         const wCost=sub.scope==='go'?sub.price*goH:sub.price*heads;
         html+=`<div class="proj ok" style="${on?'border-color:#CFE6D5;background:#F0F8F3':''}">
