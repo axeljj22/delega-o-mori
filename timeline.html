@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delegá o Morí — Timeline de la era de la IA</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗓️</text></svg>">
+<style>
+  :root{
+    --bg:#F3F1EA; --ink:#1A1813; --ink2:#74706A; --ink3:#AEA99F;
+    --line:#E2DFD6; --line2:#D2CEC4;
+    --accent:#E8590C; --accent-soft:#FBEAD9;
+    --real:#7A6FA8; --real-soft:#F2F0F7;
+    --good:#2F7D4F;
+    --mono:ui-monospace,'SF Mono','Cascadia Mono',Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--mono);background:var(--bg);color:var(--ink);font-size:14.5px;line-height:1.55;padding:0 16px 80px;font-feature-settings:"tnum" 1}
+  .wrap{max-width:880px;margin:0 auto}
+  header{padding:34px 0 10px;text-align:center}
+  h1{font-size:24px;font-weight:800;letter-spacing:-.01em}
+  h1 b{color:var(--accent)}
+  .sub{color:var(--ink2);font-size:13.5px;margin-top:6px}
+  .legend{display:flex;justify-content:center;gap:18px;margin:18px 0 8px;font-size:12.5px;flex-wrap:wrap}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dotl{width:11px;height:11px;border-radius:50%;display:inline-block}
+
+  .era{margin:34px 0 6px;text-align:center}
+  .era b{font-size:16px;background:var(--ink);color:var(--bg);padding:4px 14px;border-radius:999px;font-weight:700}
+  .era .ed{display:block;color:var(--ink2);font-size:12px;margin-top:6px}
+
+  .tl{position:relative;margin-top:18px}
+  .tl::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--line2);transform:translateX(-50%)}
+  .ev{position:relative;width:50%;padding:0 26px 22px 0;text-align:right}
+  .ev.game{margin-left:50%;padding:0 0 22px 26px;text-align:left}
+  .ev::after{content:'';position:absolute;top:6px;width:11px;height:11px;border-radius:50%;background:var(--real);right:-6.5px}
+  .ev.game::after{background:var(--accent);right:auto;left:-6.5px}
+  .ev .when{font-size:11.5px;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+  .ev .tt{font-weight:700;font-size:14.5px;margin-top:2px}
+  .ev.real .tt{color:var(--real)}
+  .ev.game .tt{color:var(--accent)}
+  .ev .dd{color:var(--ink2);font-size:12.5px;margin-top:3px}
+  .ev .fx{display:inline-block;margin-top:6px;font-size:11.5px;font-weight:600;background:var(--accent-soft);border:1px solid #F3D6BC;padding:2px 9px;border-radius:999px}
+  .ev.real .fx{background:var(--real-soft);border-color:#DDD8EC}
+
+  footer{margin-top:44px;text-align:center;color:var(--ink2);font-size:12.5px}
+  footer a{color:var(--accent);font-weight:700;text-decoration:none}
+
+  @media(max-width:640px){
+    .tl::before{left:7px}
+    .ev,.ev.game{width:100%;margin-left:0;padding:0 0 20px 26px;text-align:left}
+    .ev::after,.ev.game::after{left:1.5px;right:auto}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>DELEGÁ<b>/</b>MORÍ · Timeline</h1>
+  <div class="sub">La era de la IA, fecha por fecha — y cómo se juega adentro del juego.<br>30 nov 2022 → 30 jun 2026 · 1 tick = 1 semana real</div>
+  <div class="legend">
+    <span><i class="dotl" style="background:var(--real)"></i> Hito real (pasó en el mundo)</span>
+    <span><i class="dotl" style="background:var(--accent)"></i> Hito del juego (lo desbloqueás vos)</span>
+  </div>
+</header>
+
+<!-- ══════════ ERA 1 ══════════ -->
+<div class="era"><b>ERA 1 · A pulmón</b><span class="ed">nov 2022 → nov 2023 · semanas 1-49 · la agencia se hace con gente</span></div>
+<div class="tl">
+  <div class="ev real"><div class="when">Sem 1 · 30 nov 2022</div><div class="tt">🗞️ OpenAI lanza ChatGPT</div><div class="dd">Empieza la era de la IA. El mundo cambia mientras vos respondés WhatsApps.</div><div class="fx">habilita → Capacitación: Prompting</div></div>
+  <div class="ev game"><div class="when">Desde el arranque</div><div class="tt">📥 Vos solo contra la bandeja</div><div class="dd">Cada tarea a mano, clic por clic. Tus horas suben. Esto no escala — y lo sentís.</div></div>
+  <div class="ev game"><div class="when">~5 tareas hechas</div><div class="tt">👥 Selección de personal</div><div class="dd">Contratás tu primera persona (Junior/Senior, recruiting con demora). Al delegar la búsqueda, las semanas empiezan a correr solas.</div><div class="fx">se desbloquea → Equipo + el tiempo corre</div></div>
+  <div class="ev game"><div class="when">Con 1 empleado</div><div class="tt">🧭 Panel de Proyectos</div><div class="dd">Capacitaciones, documentación, herramientas: acá se gana el juego.</div></div>
+  <div class="ev game"><div class="when">Con 3 empleados</div><div class="tt">📚 N1 · Capacitación: Prompting</div><div class="dd">Lo básico primero: tu gente rinde +25%, tus clicks ×2,5. La IA como consultor: pensás vos, ejecutás vos.</div><div class="fx">WORKIA Nivel 1</div></div>
+  <div class="ev game"><div class="when">Con 3 empleados</div><div class="tt">📣 Pauta (Meta / Google / TikTok)</div><div class="dd">CAC distinto por canal, y los precios se mueven semana a semana. Pautá cuando está barato.</div></div>
+  <div class="ev real"><div class="when">Sem 16 · mar 2023</div><div class="tt">🗞️ Sale GPT-4</div><div class="dd">Salto de calidad.</div><div class="fx">tu gente y tus prompts rinden +5%/+20%</div></div>
+  <div class="ev game"><div class="when">Área con 2+ personas, 3+ semanas</div><div class="tt">📋 Documentar procesos</div><div class="dd">Primero lo hacen las personas, después se documenta. Sin contexto, la IA alucina. Te cuesta horas tuyas — o pagás un consultor externo.</div><div class="fx">requisito para TODA la IA que viene</div></div>
+  <div class="ev game"><div class="when">Con 5+ empleados</div><div class="tt">😊 Moral y régimen laboral</div><div class="dd">Semana de 4 días o jornada de 6h: menos capacidad, mucha más retención. La gente que se queda sabe más.</div></div>
+  <div class="ev game"><div class="when">Con 8 clientes</div><div class="tt">🗂 Cobranzas (Admin existe)</div><div class="dd">Si Admin no cubre su demanda, la plata queda "por cobrar" — y a las 6 semanas se vuelve incobrable.</div></div>
+</div>
+
+<!-- ══════════ ERA 2 ══════════ -->
+<div class="era"><b>ERA 2 · Asistentes</b><span class="ed">nov 2023 → feb 2025 · semanas 50-117 · la IA potencia personas (el valle de las horas)</span></div>
+<div class="tl">
+  <div class="ev real"><div class="when">Sem 50 · nov 2023</div><div class="tt">🗞️ OpenAI lanza los GPTs</div><div class="dd">Asistentes personalizados con tu contexto.</div><div class="fx">habilita → Asistentes (N2) + Tokens</div></div>
+  <div class="ev game"><div class="when">Prompting + área documentada</div><div class="tt">🤖 N2 · Asistente</div><div class="dd">Un GPT propio por área: tu gente del área rinde +15% c/u (máx 3). <b>Sin humanos no hace nada</b> — potencia personas, no las reemplaza.</div><div class="fx">WORKIA Nivel 2 · corre con tokens</div></div>
+  <div class="ev game"><div class="when">Con los GPTs</div><div class="tt">⚡ Mercado de tokens</div><div class="dd">Tu IA corre con tokens y el precio se mueve (random walk + noticias). Stockeá barato.</div></div>
+  <div class="ev real"><div class="when">Sem 64 · feb-mar 2024</div><div class="tt">🗞️ Salen Gemini y Claude 3</div><div class="dd">La competencia abarata el cómputo.</div><div class="fx">token −15%</div></div>
+  <div class="ev real"><div class="when">Sem 76 · may 2024</div><div class="tt">🗞️ Sale GPT-4o</div><div class="fx">habilita → Ventas con IA (fees +20%)</div></div>
+  <div class="ev real"><div class="when">Sem 77 · may 2024</div><div class="tt">🗞️ Freepik compra Magnific</div><div class="dd">Generación de imágenes para todos.</div><div class="fx">habilita → Marketing con IA (CAC −25%)</div></div>
+  <div class="ev game"><div class="when">Con 6+ clientes (era GPTs)</div><div class="tt">🛠 CRM con IA</div><div class="dd">La satisfacción decae 50% menos y gestionar clientes cuesta menos horas.</div></div>
+  <div class="ev real"><div class="when">Sem 85 · 2024</div><div class="tt">🗞️ Make, Zapier y n8n explotan con IA</div><div class="dd">Se pueden encadenar pasos.</div><div class="fx">habilita → Capacitación: Workflows</div></div>
+  <div class="ev game"><div class="when">2 Asistentes + $8k/sem</div><div class="tt">⚙️ N3 · Workflow</div><div class="dd">Un clic de tu gente dispara una cadena entera: +30% por workflow (máx 3 por área). Todavía hace falta gente que lo dispare.</div><div class="fx">WORKIA Nivel 3</div></div>
+  <div class="ev game"><div class="when">2023-2025 · el valle</div><div class="tt">🔥 El valle de las horas</div><div class="dd">Para facturar más necesitás 20-40 personas. Gestión + coordinación + clientes te empujan a 50-65h. Managers ayudan, pero la coordinación n² no perdona. Acá se muere… o se espera la salida.</div></div>
+  <div class="ev real"><div class="when">Sem 99 · oct 2024</div><div class="tt">🗞️ Las IAs usan la computadora solas</div><div class="dd">Algo grande se viene…</div></div>
+  <div class="ev game"><div class="when">Ventana sem 95-135</div><div class="tt">👶 Tuviste un hijo</div><div class="dd">Aviso 3 semanas antes. Tu techo de burnout baja de 80h a 65h, para siempre. El mejor motivo para trabajar menos.</div></div>
+  <div class="ev real"><div class="when">Sem 112 · ene 2025</div><div class="tt">🗞️ DeepSeek sacude el mercado</div><div class="fx">token −20%</div></div>
+</div>
+
+<!-- ══════════ ERA 3 ══════════ -->
+<div class="era"><b>ERA 3 · Agentes</b><span class="ed">feb 2025 → nov 2025 · semanas 118-155 · la IA ejecuta sola (la transformación)</span></div>
+<div class="tl">
+  <div class="ev real"><div class="when">Sem 118 · feb 2025</div><div class="tt">🗞️ Anthropic lanza Claude Code</div><div class="dd">Agentes que piensan y ejecutan SOLOS.</div><div class="fx">habilita → Agentes (N4) · dispara migración de workflows</div></div>
+  <div class="ev game"><div class="when">Al salir Claude Code</div><div class="tt">⚡ Migración (clic frenético)</div><div class="dd">Tus workers quedaron en versión vieja (70%). Migralos uno por clic, pagá una consultora… o comprá el software que lo automatiza para siempre.</div></div>
+  <div class="ev game"><div class="when">2 Workflows + $18k/sem</div><div class="tt">🦾 N4 · Agente</div><div class="dd">La primera IA que ejecuta SOLA. Nace cruda (rinde 25): hay que <b>entrenarla</b> ($2.500 o 2 semanas) para que rinda 55. Y a veces alucina: supervisión, no fe.</div><div class="fx">WORKIA Nivel 4</div></div>
+  <div class="ev game"><div class="when">Tras desbloquear Agentes</div><div class="tt">🎓 IA-Ops: capacitar al equipo</div><div class="dd">Tu gente aprende a operar agentes: absorbe supervisión, entrena agentes al instante y cuesta menos gestión. Si renuncian, esa inversión se va con ellos.</div></div>
+  <div class="ev game"><div class="when">Con 1 Agente</div><div class="tt">🔧 Auto-compra de tokens</div><div class="dd">Una implementación cara ($12.000) que repone tokens sola, comprando al precio del día. Automatizá hasta lo aburrido.</div></div>
+  <div class="ev real"><div class="when">Sem 141 · ago 2025</div><div class="tt">🗞️ Sale GPT-5</div><div class="fx">dispara migración de agentes</div></div>
+  <div class="ev game"><div class="when">La reducción</div><div class="tt">✂️ Achicar el equipo</div><div class="dd">Con agentes cubriendo la demanda, lo óptimo pasa de 20-40 personas a 2-5 capacitadas en IA-Ops. Indemnizaciones, reforma laboral, moral: soltar también es delegar.</div></div>
+  <div class="ev real"><div class="when">Sem 150 · 2025</div><div class="tt">🗞️ Los agentes orquestan agentes</div><div class="fx">habilita → Capacitación: Orquestación</div></div>
+</div>
+
+<!-- ══════════ ERA 4 ══════════ -->
+<div class="era"><b>ERA 4 · Orquestación</b><span class="ed">nov 2025 → jun 2026 · semanas 156-188 · el sistema se maneja solo</span></div>
+<div class="tl">
+  <div class="ev real"><div class="when">Sem 156 · nov 2025</div><div class="tt">🗞️ Google lanza Antigravity</div><div class="dd">Guerra de stacks.</div><div class="fx">DECISIÓN → Claude Code (−10% tokens) / Codex (−15% builds) / Antigravity (−15% supervisión)</div></div>
+  <div class="ev game"><div class="when">2 Agentes entrenados + $25k/sem</div><div class="tt">🧠 N5 · Orquestador</div><div class="dd">Agentes manejando agentes: +50% de capacidad a cada N4 del área y −40% de su supervisión. Sin agentes no hace nada. El techo de WORKIA.</div><div class="fx">WORKIA Nivel 5</div></div>
+  <div class="ev real"><div class="when">Sem 179 · abr 2026</div><div class="tt">🗞️ Freepik ahora es Magnific + lanza Spaces</div><div class="fx">contenido orgánico ×2 (Growth sobrante = clientes gratis)</div></div>
+  <div class="ev real"><div class="when">Sem 183 · may 2026</div><div class="tt">🗞️ Antigravity 2.0 y GPT-5.5</div><div class="fx">última migración (o ninguna, si la automatizaste)</div></div>
+  <div class="ev game"><div class="when">$15k/sem con ≤12h × 3 semanas</div><div class="tt">🏆 Victoria 1 · Libertad operativa</div><div class="dd">El negocio ya no te necesita en el medio. Pocas cuentas premium + agentes + 2-5 personas IA-Ops. El juego sigue…</div></div>
+  <div class="ev real"><div class="when">Sem 188 · 30 jun 2026</div><div class="tt">🗞️ Llegaste al presente</div><div class="dd">La historia sigue — y vos seguís jugando.</div></div>
+  <div class="ev game"><div class="when">Caja $250k + $20k/sem + ≤30h + 3 áreas documentadas</div><div class="tt">🏝 Final · Contratar CEO y retirarte</div><div class="dd">Nadie compra tu caos: el negocio tiene que andar sin vos. Firmás, salís por la puerta, y de clickear WhatsApps en 2022 pasaste a esto.</div><div class="fx">FIN DEL JUEGO</div></div>
+</div>
+
+<footer>
+  <a href="index.html">← Jugar Delegá o Morí</a><br><br>
+  Hecho por Axel Jutoran · los hitos reales son reales; tu agencia, por suerte, es un juego.
+</footer>
+</div>
+</body>
+</html>

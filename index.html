@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Delegá o Morí</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>">
-<meta name="description" content="Juego incremental sobre delegar tu negocio en IA. La métrica que importa no es la plata: son tus horas. Por Axel Jutoran.">
+<meta name="description" content="Juego incremental sobre delegar tu negocio en IA, siguiendo la historia real de la era de la IA (2022-2026). Por Axel Jutoran.">
 <meta property="og:title" content="Delegá o Morí">
-<meta property="og:description" content="Gestioná tu agencia, delegá en workers de IA y despedite de tu propia operación. ¿Llegás al Orquestador?">
+<meta property="og:description" content="Gestioná tu agencia desde la salida de ChatGPT hasta hoy. Contratá, documentá, delegá en IA y despedite de tu propia operación.">
 <meta property="og:type" content="website">
 <style>
   :root{
@@ -20,39 +20,35 @@
   *{box-sizing:border-box;margin:0;padding:0}
   [hidden]{display:none!important}
   html{-webkit-text-size-adjust:100%}
-  body{
-    font-family:var(--mono); background:var(--bg); color:var(--ink);
-    font-size:15px; line-height:1.55; padding:0 16px 80px;
-    font-feature-settings:"tnum" 1;
-  }
-  .wrap{max-width:620px;margin:0 auto}
+  body{font-family:var(--mono);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.55;padding:0 16px 80px;font-feature-settings:"tnum" 1}
+  .wrap{max-width:640px;margin:0 auto}
 
-  /* HEADER */
   header{position:sticky;top:0;z-index:40;background:var(--bg);border-bottom:1px solid var(--line);margin:0 -16px;padding:0 16px}
-  .hbar{display:flex;align-items:center;gap:14px;padding:11px 0;max-width:620px;margin:0 auto;flex-wrap:wrap}
+  .hbar{display:flex;align-items:center;gap:13px;padding:10px 0;max-width:640px;margin:0 auto;flex-wrap:wrap}
   .logo{font-weight:700;letter-spacing:.02em;font-size:15px}
   .logo b{color:var(--accent)}
   .hstat{display:flex;flex-direction:column;line-height:1.1}
   .hstat .k{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em}
-  .hstat .v{font-size:14px;font-weight:700}
+  .hstat .v{font-size:13.5px;font-weight:700;white-space:nowrap}
   .hspace{flex:1}
   .hctrl{display:flex;gap:6px}
+  #weekbar{height:3px;background:rgba(0,0,0,.05)}
+  #weekbar i{display:block;height:100%;width:0;background:var(--accent);opacity:.5}
 
-  /* BUTTONS */
-  .btn{font-family:var(--mono);font-size:14px;font-weight:600;padding:9px 14px;border-radius:7px;border:1px solid var(--line2);background:#FBFAF6;color:var(--ink);cursor:pointer;transition:transform .08s,background .12s,border-color .12s;min-height:42px}
+  .btn{font-family:var(--mono);font-size:14px;font-weight:600;padding:9px 14px;border-radius:7px;border:1px solid var(--line2);background:#FBFAF6;color:var(--ink);cursor:pointer;transition:transform .08s,background .12s;min-height:42px}
   .btn:hover{background:#fff;border-color:var(--ink3)}
   .btn:active{transform:translateY(1px)}
   .btn:disabled{opacity:.4;cursor:not-allowed}
   .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-  .btn.primary:hover{background:#cf4e09;border-color:#cf4e09}
-  .btn.small{padding:6px 11px;min-height:34px;font-size:13px;font-weight:600}
+  .btn.primary:hover{background:#cf4e09}
+  .btn.small{padding:6px 11px;min-height:34px;font-size:13px}
+  .btn.tiny{padding:2px 8px;min-height:26px;font-size:12px;border-radius:6px}
   .btn:focus-visible{outline:3px solid rgba(232,89,12,.3);outline-offset:1px}
 
-  /* HERO HOURS */
-  .hero{padding:26px 0 6px}
+  .hero{padding:22px 0 4px}
   .hero .label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink2)}
-  .hero .num{font-size:52px;font-weight:800;line-height:.95;letter-spacing:-.02em;margin-top:4px}
-  .hero .num small{font-size:17px;font-weight:600;color:var(--ink2);letter-spacing:0}
+  .hero .num{font-size:48px;font-weight:800;line-height:.95;letter-spacing:-.02em;margin-top:4px}
+  .hero .num small{font-size:16px;font-weight:600;color:var(--ink2)}
   .track{position:relative;height:14px;background:#E7E4DB;border-radius:7px;margin-top:20px}
   .fill{height:100%;border-radius:7px;transition:background .4s;min-width:5px;background:var(--accent)}
   .mark{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--ink3)}
@@ -60,141 +56,129 @@
   .mark.goal{background:var(--good)} .mark.goal .t{color:var(--good)}
   .mark.death{background:var(--bad)} .mark.death .t{color:var(--bad);left:auto;right:0;transform:none}
   .breakdown{font-size:12px;color:var(--ink2);margin-top:16px;min-height:16px}
-  .goalline{font-size:13px;color:var(--ink2);margin-top:10px}
+  .goalline{font-size:12.5px;color:var(--ink2);margin-top:9px}
   .goalline b{color:var(--good)}
 
-  /* PANELS */
-  .stage{display:flex;flex-direction:column;gap:16px;margin-top:22px}
-  .panel{border:1px solid var(--line);border-radius:11px;padding:18px;background:#FBFAF6}
+  #statusLine{margin-top:14px;font-size:13px;font-weight:600;padding:9px 12px;border-radius:9px;border:1px solid var(--line)}
+  #statusLine.ok{color:var(--good);background:#EAF4EC;border-color:#CFE6D5}
+  #statusLine.bad{color:var(--bad);background:#FBECE9;border-color:#F2D2CC}
+
+  #newsTicker{margin-top:10px;font-size:12.5px;padding:8px 12px;border-radius:9px;background:#EFEDE5;border:1px dashed var(--line2);color:var(--ink2)}
+  #newsTicker b{color:var(--ink)}
+
+  .stage{display:flex;flex-direction:column;gap:14px;margin-top:18px}
+  .panel{border:1px solid var(--line);border-radius:11px;padding:16px;background:#FBFAF6}
   .panel.hidden{display:none}
   .panel.glow{animation:revealIn .55s ease}
   @keyframes revealIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-  .panel h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;gap:8px}
-  .panel .hint{font-size:12.5px;color:var(--ink2);margin-top:5px}
+  .panel h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .panel .hint{font-size:12.5px;color:var(--ink2);margin-top:4px}
 
-  /* COLD OPEN */
-  .bigbtn{width:100%;font-size:17px;font-weight:700;padding:22px 16px;margin-top:14px;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;line-height:1.3;transition:transform .06s,background .12s}
+  .bigbtn{width:100%;font-size:16px;font-weight:700;padding:18px 14px;margin-top:12px;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;line-height:1.3;transition:transform .06s}
   .bigbtn:hover{background:#cf4e09}
-  .bigbtn:active{transform:translateY(2px) scale(.997)}
-  .bigbtn .plus{display:block;font-size:13px;font-weight:600;opacity:.85;margin-top:3px}
-  .pend{display:flex;justify-content:space-between;align-items:baseline;margin-top:14px;font-size:13px;color:var(--ink2)}
-  .pend b{font-size:22px;font-weight:800;color:var(--ink)}
+  .bigbtn:active{transform:translateY(2px)}
+  .bigbtn .plus{display:block;font-size:12.5px;font-weight:600;opacity:.85;margin-top:3px}
+  .bigbtn.mini{font-size:14px;padding:12px}
+  .pend{display:flex;justify-content:space-between;align-items:baseline;margin-top:12px;font-size:13px;color:var(--ink2)}
+  .pend b{font-size:21px;font-weight:800;color:var(--ink)}
   .pend b.hot{color:var(--bad)}
 
-  /* GENERIC ROWS */
-  .row{display:flex;align-items:center;gap:10px}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .grow{flex:1;min-width:0}
-  .muted{color:var(--ink2)}
-  .small{font-size:12.5px}
-  .mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
+  .muted{color:var(--ink2)} .small{font-size:12.5px}
+  .mt8{margin-top:8px}.mt12{margin-top:12px}
   .num2{font-weight:700}
 
-  /* AREAS */
-  .area{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
-  .area:first-of-type{border-top:0;padding-top:0;margin-top:12px}
+  /* areas */
+  .area{border-top:1px solid var(--line);padding-top:13px;margin-top:13px;transition:box-shadow .3s}
+  .area:first-child{border-top:0;padding-top:0;margin-top:10px}
+  .area.deficit{box-shadow:inset 3px 0 0 var(--bad)}
   .area .nm{font-weight:700;font-size:14px}
-  .capwrap{margin-top:7px}
-  .capbar{height:9px;background:#E7E4DB;border-radius:5px;overflow:hidden;margin:5px 0}
+  .covpct{font-size:18px;font-weight:800}
+  .capbar{height:9px;background:#E7E4DB;border-radius:5px;overflow:hidden;margin:6px 0 3px}
   .capbar i{display:block;height:100%;border-radius:5px;transition:width .4s,background .4s}
-  .capline{display:flex;justify-content:space-between;font-size:12px;color:var(--ink2)}
-  .chips{display:flex;flex-wrap:wrap;gap:5px;margin:9px 0 2px}
+  .capline{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink2)}
+  .faltan{font-size:12px;font-weight:700;color:var(--bad);margin-top:4px}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 2px}
   .chip{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:#F0EEE6;border:1px solid var(--line);display:inline-flex;align-items:center;gap:6px}
   .chip.human{background:var(--accent-soft);border-color:#F3D6BC}
-  .chip .x{cursor:pointer;color:var(--ink3);font-weight:800}
+  .chip.warn{background:#FBF3E0;border-color:#EAD9AC}
+  .chip .x{cursor:pointer;color:var(--ink3);font-weight:800;padding:0 3px}
   .chip .x:hover{color:var(--bad)}
-  .buildrow{display:flex;gap:8px;margin-top:10px}
+  .buildrow{display:flex;gap:8px;margin-top:9px}
   select{font-family:var(--mono);font-size:13.5px;padding:9px;border-radius:7px;border:1px solid var(--line2);background:#fff;flex:1;min-height:42px;color:var(--ink)}
-  select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,89,12,.13)}
-  .binfo{font-size:11.5px;color:var(--ink2);margin-top:7px;min-height:15px}
+  select:focus{outline:none;border-color:var(--accent)}
+  .binfo{font-size:11.5px;color:var(--ink2);margin-top:6px;min-height:14px}
 
-  /* ADS */
-  .adrow{display:flex;align-items:center;gap:10px;margin-top:11px}
+  /* team */
+  .trow{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;flex-wrap:wrap}
+  .trow .lbl{width:120px;font-weight:700}
+  .pipe{font-size:12px;color:var(--ink2);margin-top:8px}
+
+  /* projects */
+  .proj{border:1px solid var(--line);border-radius:9px;padding:11px 13px;margin-top:9px;background:#FBFAF6}
+  .proj.ok{border-color:#E8B68C;background:#FDF7F1}
+  .proj.locked{opacity:.62}
+  .proj .pn{font-weight:700;font-size:13.5px}
+  .proj .pd{font-size:12px;color:var(--ink2);margin-top:2px}
+  .proj .pr{font-size:11.5px;color:var(--bad);margin-top:3px;font-weight:600}
+  .proj .acts2{margin-top:8px;display:flex;gap:7px;flex-wrap:wrap}
+
+  /* ads/clients/tokens */
+  .adrow{display:flex;align-items:center;gap:10px;margin-top:10px}
   .adrow .ch{font-weight:700;font-size:13.5px;width:58px}
-  .adrow input[type=range]{flex:1;accent-color:var(--accent);min-height:26px}
+  .adrow input[type=range]{flex:1;accent-color:var(--accent);min-height:30px}
   .adrow .amt{font-size:12.5px;font-weight:700;width:84px;text-align:right}
-  .adnote{font-size:11px;color:var(--ink2);margin:2px 0 0 68px}
-
-  /* CLIENTS */
-  .clist{display:flex;flex-direction:column;gap:7px;max-height:300px;overflow-y:auto}
-  .cl{display:flex;align-items:center;gap:9px;padding:7px 10px;border:1px solid var(--line);border-radius:7px}
+  .adnote{font-size:11px;color:var(--ink2);margin:1px 0 0 68px}
+  .up{color:var(--bad);font-weight:700} .dn{color:var(--good);font-weight:700}
+  .clist{display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;margin-top:10px}
+  .cl{display:flex;align-items:center;gap:9px;padding:6px 10px;border:1px solid var(--line);border-radius:7px}
   .cl .nm{font-weight:600;font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .cl .fee{font-size:12.5px;font-weight:700}
   .sat{width:46px;height:7px;background:#E7E4DB;border-radius:4px;overflow:hidden;flex-shrink:0}
   .sat i{display:block;height:100%;border-radius:4px}
+  .meter{display:flex;justify-content:space-between;font-size:13px;margin-top:8px}
 
-  /* TOKENS / OP */
-  .meter{display:flex;justify-content:space-between;font-size:13px;margin-top:9px}
-  .oprow{display:flex;align-items:center;gap:12px;margin-top:7px}
-  .oprow input[type=range]{flex:1;accent-color:var(--accent);min-height:26px}
-  .oprow .amt{font-weight:700;width:42px;text-align:right}
-
-  /* NEXT HINT */
-  .nexthint{text-align:center;font-size:12px;color:var(--ink3);padding:6px 0 2px;letter-spacing:.03em}
-
-  /* LOG */
-  .log{font-size:12.5px;max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:5px}
+  .log{font-size:12.5px;max-height:190px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;margin-top:10px}
   .log div{padding:6px 9px;border-radius:6px;background:#F0EEE6;border-left:3px solid var(--line2)}
-  .log .good{border-left-color:var(--good)} .log .bad{border-left-color:var(--bad)} .log .warn{border-left-color:var(--warn)} .log .accent{border-left-color:var(--accent)}
+  .log .good{border-left-color:var(--good)} .log .bad{border-left-color:var(--bad)} .log .warn{border-left-color:var(--warn)} .log .accent{border-left-color:var(--accent)} .log .news{border-left-color:#7A6FA8;background:#F2F0F7}
   .log .wk{color:var(--ink3);font-size:11px;margin-right:6px}
 
-  /* LESSON TOAST */
-  .lesson{border:1px solid var(--accent);background:var(--accent-soft);border-radius:9px;padding:11px 13px;font-size:13px}
-  .lesson b{color:var(--accent)}
+  .nexthint{text-align:center;font-size:12px;color:var(--ink3);padding:6px 0 2px}
 
-  /* MODAL */
   .overlay{position:fixed;inset:0;background:rgba(26,24,19,.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
-  .modal{background:var(--bg);border:1px solid var(--line2);border-radius:13px;padding:28px;max-width:480px;width:100%;box-shadow:0 14px 40px rgba(0,0,0,.22);max-height:90vh;overflow-y:auto}
-  .modal h2{font-size:22px;font-weight:800;letter-spacing:-.01em;margin-bottom:10px;text-transform:none}
-  .modal p{color:var(--ink2);margin-bottom:13px;font-size:14.5px;line-height:1.55}
+  .modal{background:var(--bg);border:1px solid var(--line2);border-radius:13px;padding:26px;max-width:480px;width:100%;box-shadow:0 14px 40px rgba(0,0,0,.22);max-height:90vh;overflow-y:auto}
+  .modal h2{font-size:21px;font-weight:800;margin-bottom:10px}
+  .modal p{color:var(--ink2);margin-bottom:12px;font-size:14.5px;line-height:1.55}
   .modal p b{color:var(--ink)}
   .acts{display:flex;gap:9px;flex-wrap:wrap;margin-top:6px}
   .acts .btn{flex:1;min-width:130px}
-  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:15px 0}
-  .kpi{background:#FBFAF6;border:1px solid var(--line);border-radius:8px;padding:11px}
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0}
+  .kpi{background:#FBFAF6;border:1px solid var(--line);border-radius:8px;padding:10px}
   .kpi .k{font-size:10px;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
-  .kpi .v{font-weight:800;font-size:19px}
+  .kpi .v{font-weight:800;font-size:18px}
   .neg{color:var(--bad)} .pos{color:var(--good)}
 
-  /* WEEKBAR (paso del tiempo) */
-  #weekbar{height:3px;background:rgba(0,0,0,.05)}
-  #weekbar i{display:block;height:100%;width:0;background:var(--accent);opacity:.5}
-
-  /* STATUS LINE (qué falta) */
-  #statusLine{margin-top:16px;font-size:13.5px;font-weight:600;padding:10px 13px;border-radius:9px;border:1px solid var(--line)}
-  #statusLine.ok{color:var(--good);background:#EAF4EC;border-color:#CFE6D5}
-  #statusLine.bad{color:var(--bad);background:#FBECE9;border-color:#F2D2CC}
-
-  /* AREA DÉFICIT */
-  .area{transition:box-shadow .3s}
-  .area.deficit{box-shadow:inset 3px 0 0 var(--bad)}
-  .faltan{font-size:12px;font-weight:700;color:var(--bad);margin-top:6px;min-height:0}
-
-  /* ---- MOBILE ---- */
   @media(max-width:560px){
-    body{padding:0 12px 64px;font-size:14.5px}
-    .hbar{gap:9px;padding:10px 0}
-    .logo{font-size:14px}
-    .hstat .v{font-size:12.5px} .hstat .k{font-size:9px}
-    #hsRev{display:none!important}        /* Factura/sem ya se ve en el hero/áreas */
+    body{padding:0 12px 64px;font-size:14px}
+    .hbar{gap:8px;padding:9px 0}
+    .logo{font-size:13.5px}
+    .hstat .v{font-size:12px} .hstat .k{font-size:9px}
     .btn.small{padding:5px 9px;min-height:34px}
-    .hero{padding:18px 0 4px}
-    .hero .num{font-size:40px} .hero .num small{font-size:14px}
+    .hero{padding:16px 0 4px}
+    .hero .num{font-size:38px} .hero .num small{font-size:13px}
     .mark .t{font-size:9px}
-    .breakdown{font-size:11.5px}
-    .panel{padding:15px}
-    .bigbtn{font-size:16px;padding:20px 14px}
+    .panel{padding:13px}
+    .bigbtn{font-size:15px;padding:16px 12px}
     input[type=range]{min-height:34px}
-    .chip{font-size:12px} .chip .x{padding:2px 6px;margin-left:2px}
-    select{font-size:14px}
-    .modal{padding:20px}
-    .modal h2{font-size:20px}
-    .acts{flex-direction:column}
-    .acts .btn{min-width:0;width:100%}
+    .modal{padding:18px} .modal h2{font-size:19px}
+    .acts{flex-direction:column} .acts .btn{min-width:0;width:100%}
+    .trow .lbl{width:100%}
   }
   @media(max-width:380px){
-    .hstat .k{display:none}               /* solo el valor, sin label */
+    .hstat .k{display:none}
     .adrow .ch{width:48px} .adrow .amt{width:74px;font-size:12px}
-    .hero .num{font-size:36px}
+    .hero .num{font-size:34px}
   }
 </style>
 </head>
@@ -202,10 +186,10 @@
 
 <header><div class="hbar">
   <div class="logo">DELEGÁ<b>/</b>MORÍ</div>
-  <div class="hstat" id="hsWeek" hidden><span class="k">Semana</span><span class="v" id="stWeek">1</span></div>
-  <div class="hstat" id="hsCash" hidden><span class="k">Caja</span><span class="v" id="stCash">$0</span></div>
-  <div class="hstat" id="hsRev" hidden><span class="k">Factura/sem</span><span class="v" id="stRev">$0</span></div>
-  <div class="hstat" id="hsTok" hidden><span class="k">Tokens</span><span class="v" id="stTok">0</span></div>
+  <div class="hstat" id="hsWeek" hidden><span class="k" id="stDate">—</span><span class="v" id="stWeek">S1</span></div>
+  <div class="hstat" id="hsCash"><span class="k">Caja</span><span class="v" id="stCash">$0</span></div>
+  <div class="hstat" id="hsTok" hidden><span class="k" id="tokPriceK">Tokens</span><span class="v" id="stTok">0</span></div>
+  <div class="hstat" id="hsRecv" hidden><span class="k">Por cobrar</span><span class="v neg" id="stRecv">$0</span></div>
   <div class="hspace"></div>
   <div class="hctrl" id="hctrl" hidden>
     <button class="btn small" id="btnPause">⏸</button>
@@ -219,733 +203,1125 @@
     <div class="label">Tus horas esta semana</div>
     <div class="num"><span id="hNum">0</span><small> h/sem</small></div>
     <div class="track">
-      <div class="fill" id="hFill" style="width:18%"></div>
-      <div class="mark goal" id="markGoal" style="left:15%"><span class="t">12h · libertad</span></div>
-      <div class="mark death" style="left:100%"><span class="t">80h · burnout</span></div>
+      <div class="fill" id="hFill" style="width:14%"></div>
+      <div class="mark goal" style="left:15%"><span class="t">12h · libertad</span></div>
+      <div class="mark death" id="deathMark" style="left:100%"><span class="t" id="deathTag">80h · burnout</span></div>
     </div>
     <div class="breakdown" id="hBreak"></div>
-    <div class="goalline" id="goalLine" hidden>Meta: facturar <b style="color:var(--ink);font-weight:700">$15.000/sem</b> trabajando <b>≤12h</b>, sostenido 3 semanas. Racha: <b id="streak" style="color:var(--ink)">0/3</b></div>
+    <div class="goalline" id="goalLine" hidden>Meta 1: <b>$15.000/sem con ≤12h</b> ×3 semanas (racha <b id="streak" style="color:var(--ink)">0/3</b>) · Final: <span style="color:var(--ink)">retirate</span> con caja para no volver.</div>
+    <div id="statusLine" hidden></div>
+    <div id="newsTicker" hidden></div>
   </div>
 
-  <div id="statusLine" hidden></div>
+  <div class="stage">
 
-  <div class="stage" id="stage">
-
-    <!-- COLD OPEN -->
+    <!-- TRABAJO MANUAL: nunca desaparece -->
     <div class="panel" id="pClick">
       <h2>📥 La operación</h2>
       <div class="hint" id="clickHint">Sos vos contra la bandeja. Cada tarea la hacés a mano.</div>
-      <button class="bigbtn" id="bigBtn" onclick="doTask()">Responder WhatsApp del cliente<span class="plus">+$40 · −1 tarea</span></button>
-      <div class="pend"><span>Tareas pendientes</span><b id="pendNum">0</b></div>
-      <div id="promptBox" hidden>
-        <div class="row mt16" style="gap:8px">
-          <button class="btn primary small grow" id="buildPrompt" onclick="buildPrompt()">Construir Prompt · $300</button>
-          <span class="small muted" id="promptCount"></span>
-        </div>
-        <div class="binfo" id="promptInfo"></div>
+      <button class="bigbtn" id="bigBtn" onclick="doTask()">Responder WhatsApp del cliente<span class="plus" id="bigPlus">+$60 · −1 tarea</span></button>
+      <div class="pend" id="pendRow"><span>Tareas pendientes</span><b id="pendNum">0</b></div>
+    </div>
+
+    <!-- MIGRACIÓN (clic frenético) -->
+    <div class="panel hidden" id="pMig" style="border-color:var(--accent)">
+      <h2>⚡ Migración en curso</h2>
+      <div class="hint" id="migHint"></div>
+      <button class="bigbtn mini" id="migBtn" onclick="migrateOne()">Migrar un worker (click)</button>
+      <div class="row mt8">
+        <button class="btn small" id="migConsult" onclick="migConsult()"></button>
       </div>
     </div>
 
-    <!-- LESSON SLOT (reused) handled via log/toasts -->
+    <!-- EQUIPO -->
+    <div class="panel hidden" id="pTeam">
+      <h2>👥 Equipo <span class="muted small" id="tCount"></span></h2>
+      <div class="hint">Las personas hacen el trabajo. Contratar lleva semanas; despedir cuesta indemnización.</div>
+      <div id="teamRows"></div>
+      <div class="pipe" id="pipeRow"></div>
+      <div class="row mt12" id="hireRow"></div>
+      <div class="row mt8" id="trainRow" hidden></div>
+    </div>
+
+    <!-- AGENCIA / ÁREAS -->
+    <div class="panel hidden" id="pAreas">
+      <h2>🏗 Tu agencia</h2>
+      <div class="hint">La IA potencia a tu gente. Recién los Agentes ejecutan solos.</div>
+      <div id="areasBody"></div>
+    </div>
+
+    <!-- PROYECTOS -->
+    <div class="panel hidden" id="pProj">
+      <h2>🧭 Proyectos</h2>
+      <div class="hint">Capacitaciones, documentación, herramientas. Acá se desbloquea el futuro.</div>
+      <div id="projBody"></div>
+    </div>
+
+    <!-- PAUTA -->
+    <div class="panel hidden" id="pAds">
+      <h2>📣 Pauta semanal</h2>
+      <div class="hint">Los precios se mueven. Pautá cuando está barato.</div>
+      <div id="adsBody"></div>
+      <div class="small muted mt8" id="organicRow" hidden></div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div class="panel hidden" id="pClients">
+      <h2>🧑 Clientes <span class="muted small" id="cCount"></span><span class="hspace"></span><button class="btn tiny" id="sortBtn" onclick="toggleSort()">orden: fee</button></h2>
+      <div class="clist" id="cList"></div>
+    </div>
 
     <!-- TOKENS -->
     <div class="panel hidden" id="pTok">
       <h2>⚡ Tokens</h2>
-      <div class="hint">Los workers no corren con buenas intenciones. Corren con tokens.</div>
+      <div class="hint">Tu IA corre con tokens. El precio se mueve: stockeá cuando está barato.</div>
+      <div class="meter"><span>Precio</span><span class="num2" id="tokPrice">$0,90/tok</span></div>
       <div class="meter"><span>Balance</span><span class="num2" id="tokBal">0</span></div>
-      <div class="meter" id="tokBurnRow" hidden><span>Consumo</span><span id="tokBurn">0 tok/sem</span></div>
-      <div class="row mt12" style="gap:8px">
-        <button class="btn small" id="buy500" onclick="buyTokens(500,450)">+500 · <span id="p500">$450</span></button>
-        <button class="btn small" id="buy2000" onclick="buyTokens(2000,1600)">+2.000 · <span id="p2000">$1.600</span></button>
+      <div class="meter" id="tokBurnRow" hidden><span>Consumo</span><span id="tokBurn">0/sem</span></div>
+      <div class="row mt8" style="gap:8px">
+        <button class="btn small" id="buy500" onclick="buyTokens(500)"></button>
+        <button class="btn small" id="buy2000" onclick="buyTokens(2000)"></button>
       </div>
-      <div id="autoTokWrap" class="mt12" hidden></div>
-    </div>
-
-    <!-- AREAS -->
-    <div class="panel hidden" id="pAreas">
-      <h2>🏗 Tu agencia</h2>
-      <div class="hint" id="areasHint">Construí workers para que las tareas se hagan sin vos.</div>
-      <div id="areasBody"></div>
-    </div>
-
-    <!-- ADS -->
-    <div class="panel hidden" id="pAds">
-      <h2>📣 Pauta semanal</h2>
-      <div class="hint">Cada canal trae clientes distintos. El CAC se mueve.</div>
-      <div id="adsBody"></div>
-    </div>
-
-    <!-- CLIENTS -->
-    <div class="panel hidden" id="pClients">
-      <h2>🧑 Clientes <span class="muted small" id="cCount"></span></h2>
-      <div class="hint">Si no cubrís su demanda, se van.</div>
-      <div class="clist mt12" id="cList"></div>
-    </div>
-
-    <!-- TEAM -->
-    <div class="panel hidden" id="pTeam">
-      <h2>👥 Tu equipo humano</h2>
-      <div class="hint">Cada persona suma capacidad, pero también un salario y 1h tuya de gestión. Despedir cuesta 4 semanas de indemnización.</div>
-      <div class="chips mt12" id="teamChips"></div>
-    </div>
-
-    <!-- OP HOURS -->
-    <div class="panel hidden" id="pOp">
-      <h2>🦸 El parche del fundador</h2>
-      <div class="hint">Tus horas tapan los agujeros que los workers no cubren. Es lo que te tiene atrapado. Bajalo apenas puedas.</div>
-      <div class="oprow mt12">
-        <input type="range" id="opHours" min="0" max="40" value="16" oninput="setOp(this.value)">
-        <span class="amt" id="opVal">16h</span>
-      </div>
+      <div id="autoTokWrap" class="mt8" hidden></div>
     </div>
 
     <!-- LOG -->
     <div class="panel hidden" id="pLog">
       <h2>📋 Log</h2>
-      <div class="log mt12" id="log"></div>
+      <div class="log" id="log"></div>
     </div>
 
     <div class="nexthint" id="nextHint"></div>
   </div>
 </div>
 
-<!-- INTRO / EVENT / END MODAL -->
 <div class="overlay" id="overlay">
-  <div class="modal" id="modal">
-    <h2>Delegá o Morí</h2>
-    <p>Tenés una agencia de marketing y estás metido en <b>todo</b>: los WhatsApp, los presupuestos, los reportes, las piezas.</p>
-    <p><b>El objetivo no es facturar más. Es trabajar menos.</b> Empezás haciendo cada tarea a mano. Vas a delegar en workers de IA, subiendo los 5 niveles, hasta despedirte de tu propia operación.</p>
-    <p>Ganás con <b style="color:var(--good)">$15.000/sem y ≤12h tuyas</b>, 3 semanas seguidas. Perdés si quebrás o llegás a <b style="color:var(--bad)">80h</b>.</p>
-    <div class="acts"><button class="btn primary" onclick="startGame()">Empezar a laburar</button></div>
-  </div>
+  <div class="modal" id="modal"></div>
 </div>
 
 <script>
 "use strict";
-// ============================================================ DATA
-const AREAS = [
-  {id:'o', name:'Operaciones', desc:'Entregables, piezas, campañas'},
-  {id:'g', name:'Growth',      desc:'Contenido, ads, leads'},
-  {id:'a', name:'Admin',       desc:'Facturación, reportes, contratos'},
+// ════════════════════════════════ DATA
+const AREAS=[
+  {id:'o',name:'Operaciones',desc:'Entregables, piezas, campañas'},
+  {id:'g',name:'Growth',desc:'Contenido, leads, adquisición'},
+  {id:'a',name:'Admin',desc:'Facturación, cobranzas, contratos'},
 ];
-// Passive workers, by WORKIA level (2..5). Level 1 (Prompt) is a manual click-upgrade.
-const LV = {
-  2:{name:'Asistente',    cost:1200,  tok:15,  cap:14,  sup:1.4, note:'maneja una categoría'},
-  3:{name:'Workflow',     cost:3500,  tok:40,  cap:34,  sup:0.9, note:'encadena tareas, no intervenís'},
-  4:{name:'Agente',       cost:9000,  tok:110, cap:80,  sup:0.5, note:'decide solo · puede alucinar'},
-  5:{name:'Orquestador',  cost:22000, tok:260, cap:190, sup:0.2, note:'agentes sobre agentes · −40% sup.'},
+const EMP={ jr:{n:'Junior',rec:400,delay:1,sal:700,cap:8,quit:.03},
+            sr:{n:'Senior',rec:1500,delay:2,sal:1100,cap:13,quit:.01},
+            mgr:{n:'Manager',rec:2000,delay:3,sal:1500,cap:0,quit:.01} };
+const LV={
+  2:{name:'Asistente',  icon:'🤖', cost:1800, tok:40,  boost:.15, sup:.3, max:3, note:'GPT propio: tu gente del área rinde +15% c/u'},
+  3:{name:'Workflow',   icon:'⚙️', cost:4500, tok:100, boost:.30, sup:.5, max:3, note:'un clic dispara una cadena: gente del área +30% c/u'},
+  4:{name:'Agente',     icon:'🦾', cost:10000,tok:320, cap:55, capU:25, sup:.5, note:'ejecuta SOLO · hay que entrenarlo'},
+  5:{name:'Orquestador',icon:'🧠', cost:24000,tok:700, sup:.3, note:'potencia a tus Agentes (+50% c/u, −40% su supervisión)'},
 };
-const PROMPT = {cost:300, perClickTok:1};
-const CHANNELS = [
-  {id:'meta',   name:'Meta',   cac:850,  feeMin:900,  feeMax:1800, sat:70, tag:''},
-  {id:'google', name:'Google', cac:1350, feeMin:1600, feeMax:3100, sat:76, tag:'premium'},
-  {id:'tiktok', name:'TikTok', cac:480,  feeMin:500,  feeMax:1100, sat:54, tag:'frágiles'},
+const CHANNELS=[
+  {id:'meta',name:'Meta',cac:3800,feeMin:800,feeMax:1600,sat:70,tag:''},
+  {id:'google',name:'Google',cac:6500,feeMin:1500,feeMax:2800,sat:76,tag:'premium'},
+  {id:'tiktok',name:'TikTok',cac:1900,feeMin:450,feeMax:1000,sat:54,tag:'frágiles'},
 ];
-const TASK_COPY = [
-  ['Responder WhatsApp del cliente', 40],
-  ['Mandar un presupuesto', 55],
-  ['Subir un posteo', 35],
-  ['Armar un reporte', 60],
-  ['Editar una pieza', 45],
-  ['Cargar una factura', 30],
+const TASKS_F0=[['Responder WhatsApp del cliente',60],['Mandar un presupuesto',75],['Subir un posteo',50],['Armar un reporte',80],['Editar una pieza',60],['Cargar una factura',45]];
+const TASKS_AUTO=[['Apagar incendio en el grupo de WhatsApp'],['Rehacer la pieza que el cliente odió'],['Meter mano en la operación'],['Salvar la entrega del viernes']];
+const CLIENT_NAMES=['Dental Norte','Ferretería Paz','Estudio Lex','Gimnasio K2','Pastas Doña Rosa','Inmobiliaria Sur','Clínica Vita','Logística Rápido','Vinos del Valle','Indumentaria Ona','Tech Andina','Constructora MD','Café Borges','Seguros Delta','Agro Pampa','Hotel Mirador','Academia Inglés Ya','Pet Shop Bigotes','Solar Energía','Distribuidora Olmos'];
+const HUMAN_NAMES=['Sofi','Marto','Caro','Nico','Flor','Juampi','Lu','Tomi','Vicky','Fede'];
+const MONTHS=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const EPOCH=new Date(2022,10,28); // lunes 28 nov 2022
+const PRESENT_WEEK=188;           // ~30 jun 2026
+
+// historia real de la IA — la noticia abre la puerta, tu logro la concreta
+const TIMELINE=[
+  {w:1,  id:'chatgpt',   t:'30 nov 2022 — OpenAI lanza <b>ChatGPT</b>. Empieza la era de la IA.'},
+  {w:16, id:'gpt4',      t:'mar 2023 — Sale <b>GPT-4</b>: tus prompts rinden +20%.'},
+  {w:50, id:'gpts',      t:'nov 2023 — OpenAI lanza los <b>GPTs</b>: ahora podés armar tu propio asistente.', modal:['🗞️ Llegaron los GPTs','Asistentes personalizados con tu contexto. Si documentaste procesos, podés construir <b>Asistentes (N2)</b> que potencien a tu equipo.']},
+  {w:64, id:'rivals',    t:'feb-mar 2024 — Salen <b>Gemini</b> y <b>Claude 3</b>: la competencia abarata el token (−15%).', fx:()=>{S.tokPrice*=0.85;}},
+  {w:76, id:'gpt4o',     t:'may 2024 — Sale <b>GPT-4o</b>: más rápido y más barato.'},
+  {w:77, id:'magnific',  t:'may 2024 — <b>Freepik compra Magnific</b>: generación de imágenes para todos.'},
+  {w:85, id:'n8n',       t:'2024 — <b>Make, Zapier y n8n</b> explotan con IA: se pueden encadenar pasos.', modal:['🗞️ Automatización en cadena','Make, Zapier, n8n: un clic de tu gente dispara una serie de pasos. Se desbloquea la capacitación en <b>Workflows (N3)</b>.']},
+  {w:99, id:'computeruse',t:'oct 2024 — Las IAs empiezan a usar la computadora solas. Algo grande se viene…'},
+  {w:112,id:'deepseek',  t:'ene 2025 — <b>DeepSeek</b> sacude el mercado: el token se desploma (−20%).', fx:()=>{S.tokPrice*=0.80;}},
+  {w:118,id:'claudecode',t:'feb 2025 — Anthropic lanza <b>Claude Code</b>: agentes que ejecutan solos.', modal:['🗞️ Salió Claude Code','Agentes que piensan y ejecutan SOLOS. Se desbloquea la capacitación en <b>Agentes (N4)</b>. Ojo: tus workflows viejos quedaron desactualizados — hay que migrarlos.'], fx:()=>{startMigration([2,3],'Claude Code');}},
+  {w:141,id:'gpt5',      t:'ago 2025 — Sale <b>GPT-5</b>. Tus agentes corren en modelo viejo: migralos.', fx:()=>{startMigration([4],'GPT-5');}},
+  {w:150,id:'orchnews',  t:'2025 — Los agentes empiezan a <b>orquestar agentes</b>. El techo se corre de nuevo.'},
+  {w:156,id:'stack',     t:'nov 2025 — Google lanza <b>Antigravity</b>. Guerra de stacks: Claude Code vs Codex vs Antigravity.', modal:['🗞️ Elegí tu stack','Claude Code, Codex o Antigravity: tu agencia tiene que estandarizar.','stack']},
+  {w:179,id:'spaces',    t:'abr 2026 — Freepik ahora es <b>Magnific</b> y lanza <b>Spaces</b>: workflows creativos en canvas.'},
+  {w:183,id:'agy2',      t:'may 2026 — Salen <b>Antigravity 2.0</b> y <b>GPT-5.5</b>: otra migración.', fx:()=>{startMigration([4,5],'la nueva generación');}},
+  {w:188,id:'present',   t:'30 jun 2026 — <b>Llegaste al presente.</b> La historia sigue… y vos seguís jugando.'},
 ];
-const CLIENT_NAMES = ['Dental Norte','Ferretería Paz','Estudio Lex','Gimnasio K2','Pastas Doña Rosa','Inmobiliaria Sur','Clínica Vita','Logística Rápido','Vinos del Valle','Indumentaria Ona','Tech Andina','Constructora MD','Café Borges','Seguros Delta','Agro Pampa','Hotel Mirador','Academia Inglés Ya','Pet Shop Bigotes','Solar Energía','Distribuidora Olmos'];
-const HUMAN_NAMES = ['Sofi','Marto','Caro','Nico','Flor','Juampi','Lu','Tomi','Vicky','Fede'];
 
-// ============================================================ STATE
-let S=null, timer=null, evtOpen=false, taskIdx=0;
-
+// ════════════════════════════════ STATE
+let S=null, evtOpen=false, taskIdx=0, modalQueue=[];
 function freshState(){ return {
-  phase:0, unlocked:{}, lessons:{},
-  cash:600, tokens:0, week:1,
-  pending:3, tasksDone:0, clicks:0,
-  clickYield:1, prompts:0,
-  clients:[ mkClient('Dental Norte',1300,70), mkClient('Ferretería Paz',1250,72) ],
-  workers:[], employees:[], ads:{meta:0,google:0,tiktok:0}, opHours:16,
-  tokenMult:1,tokenWeeks:0, cacMult:{meta:1,google:1,tiktok:1},cacWeeks:0, sevMult:1,sevWeeks:0, capMult:1,capWeeks:0,
-  autoBought:false, autoTokens:false,
-  streak:0, lastRev:0, nextEvt:3, gotGuru:false, over:false,
-  paused:false, speed:1,
+  week:1, over:false, paused:false, speed:1,
+  cash:900, tokens:0, tokPrice:0.90,
+  unlocked:{}, news:{}, proj:{}, lessons:{},
+  clients:[mkClient('Dental Norte',1300,70),mkClient('Ferretería Paz',1250,72)],
+  emps:{o:{jr:0,sr:0},g:{jr:0,sr:0},a:{jr:0,sr:0}}, mgr:0, trained:0,
+  pipeline:[], areaWeeks:{o:0,g:0,a:0}, docs:{o:false,g:false,a:false}, docsWip:{},
+  workers:[], lastLv:{o:2,g:2,a:2},
+  ads:{meta:0,google:0,tiktok:0}, cacW:{meta:1,google:1,tiktok:1},
+  receivables:[], pending:3, tasksDone:0, clicks:0, weekClicks:0, clickHours:0,
+  migration:null, migSoft:false, stack:null,
+  sortMode:'fee', streak:0, lastRev:0, freedomWon:false,
+  kidWarnW:0, kidArrived:false, burnCap:80,
+  moral:70, workMode:'std',
+  nextEvt:8, gotGuru:false, reformDone:false, sevMult:1, sevWeeks:0,
+  autoTokens:false,
 };}
-function mkClient(name,fee,sat){
-  const d=fee/150;
-  return {id:rid(), name, fee:Math.round(fee), sat,
-    dem:{o:+(d*0.5).toFixed(1), g:+(d*0.3).toFixed(1), a:+(d*0.2).toFixed(1)}};
-}
-function mkEmp(area){ return {id:rid(), name:pick(HUMAN_NAMES), area, salary:700, cap:11}; }
+function mkClient(name,fee,sat){ const d=fee/130;
+  return {id:rid(),name,fee:Math.round(fee),sat,dem:{o:+(d*.5).toFixed(1),g:+(d*.3).toFixed(1),a:+(d*.2).toFixed(1)}}; }
 const rid=()=>Math.random().toString(36).slice(2);
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const fmt=n=>'$'+Math.round(n).toLocaleString('es-AR');
 const $=id=>document.getElementById(id);
 const U=f=>!!S.unlocked[f];
+const N=id=>!!S.news[id];
+const P=id=>!!S.proj[id];
 function unlock(f){ if(S.unlocked[f])return false; S.unlocked[f]=true; return true; }
 const revNow=()=>S.clients.reduce((s,c)=>s+c.fee,0);
-const countLv=n=>S.workers.filter(w=>w.lv===n).length;
+const empArea=a=>S.emps[a].jr+S.emps[a].sr;
+const totalEmps=()=>empArea('o')+empArea('g')+empArea('a');
+const cntLv=(lv,area)=>S.workers.filter(w=>w.lv===lv&&(!area||w.area===area)).length;
+const trainedAgents=()=>S.workers.filter(w=>w.lv===4&&w.trained).length;
+function dateOf(w){ const d=new Date(EPOCH.getTime()+(w-1)*7*864e5); return d.getDate()+' '+MONTHS[d.getMonth()]+' '+String(d.getFullYear()); }
 
-// ============================================================ CALC
-function visAreas(){ return U('areas3') ? AREAS : [AREAS[0]]; }
-function demOf(c,a){
-  if(U('areas3')) return c.dem[a];
-  return a==='o' ? (c.dem.o+c.dem.g+c.dem.a) : 0;
-}
+// ════════════════════════════════ CALC
 function tokNeed(){ return S.workers.reduce((s,w)=>s+LV[w.lv].tok,0); }
-function calcSup(){
-  let t=0;
-  for(const a of visAreas()){
-    const ws=S.workers.filter(w=>w.area===a.id);
-    const orch=ws.some(w=>w.lv===5);
-    t+=ws.reduce((s,w)=>s+LV[w.lv].sup*(orch&&w.lv<5?0.6:1),0);
-  }
-  return t;
+function tokCap(){ return Math.max(6000, tokNeed()*4); }
+const WORKMODES={ std:{n:'Estándar (5d)',cap:1,quit:1,target:55},
+                  d4:{n:'Semana de 4 días',cap:.90,quit:.5,target:78},
+                  h6:{n:'Jornada de 6h',cap:.80,quit:.3,target:88} };
+function moralMult(){ return .85+(S.moral/100)*.25; } // 60→1.0, 100→1.1, 20→0.9
+function humanCapArea(a){
+  let base=S.emps[a].jr*EMP.jr.cap+S.emps[a].sr*EMP.sr.cap;
+  if(P('prompting')) base*=1.25;
+  if(N('gpt4')) base*=1.05;
+  return base*WORKMODES[S.workMode].cap*moralMult();
 }
-function calcHours(){
-  if(!U('autorun')){
-    // Manual phase: the more backlog you carry and the more you've ground, the deeper the trap.
-    return 8 + Math.min(30, S.tasksDone*0.65 + S.pending*0.7);
-  }
-  return 8 + S.employees.length*1 + calcSup() + S.opHours;
+function aiMultArea(a,eff){
+  const asst=Math.min(LV[2].max,cntLv(2,a)), wf=Math.min(LV[3].max,cntLv(3,a));
+  return 1+(asst*LV[2].boost+wf*LV[3].boost)*eff;
 }
+function agentCapArea(a,eff){
+  const orch=cntLv(5,a)>0;
+  return S.workers.filter(w=>w.lv===4&&w.area===a).reduce((s,w)=>{
+    let c=w.trained?LV[4].cap:LV[4].capU;
+    if(w.legacy)c*=.7;
+    return s+c*(orch?1.5:1);
+  },0)*eff;
+}
+function founderCap(){ return Math.max(0,12-totalEmps()*3); } // tus propias manos, hasta que el equipo crece
 function areaStats(){
-  const out={};
-  const need=tokNeed();
-  const eff=need>0?Math.min(1,S.tokens/need):1;
-  for(const a of visAreas()){
-    const dem=S.clients.reduce((s,c)=>s+demOf(c,a.id),0);
-    const hc=S.employees.filter(e=>e.area===a.id).reduce((s,e)=>s+e.cap,0);
-    const ac=S.workers.filter(w=>w.area===a.id).reduce((s,w)=>s+LV[w.lv].cap,0)*eff*S.capMult;
-    out[a.id]={dem, hc, ac, cap:hc+ac, you:0};
-  }
-  // distribute founder hours to biggest deficit
-  let pool=S.opHours*1.5;
-  const ids=visAreas().map(a=>a.id).sort((x,y)=>(out[y].dem-out[y].cap)-(out[x].dem-out[x].cap));
-  for(const id of ids){
-    const def=Math.max(0,out[id].dem-out[id].cap);
-    const add=Math.min(def,pool); out[id].you=add; out[id].cap+=add; pool-=add;
+  const need=tokNeed(), eff=need>0?Math.min(1,S.tokens/need):1, out={};
+  let demTot=0;
+  for(const A of AREAS){ demTot+=S.clients.reduce((s,c)=>s+c.dem[A.id],0); }
+  const fc=founderCap();
+  for(const A of AREAS){ const a=A.id;
+    const dem=S.clients.reduce((s,c)=>s+c.dem[a],0);
+    const hum=humanCapArea(a)*aiMultArea(a,eff);
+    const ai=agentCapArea(a,eff);
+    const you=demTot>0?fc*dem/demTot:0;
+    out[a]={dem,cap:hum+ai+you,hum,ai,you};
   }
   out._eff=eff; out._need=need;
   return out;
 }
-
-// ============================================================ MANUAL LOOP
-function doTask(){
-  if(S.over) return;
-  let y=1;
-  if(S.prompts>0){
-    const cost=S.prompts*PROMPT.perClickTok;
-    if(S.tokens>=cost){ S.tokens-=cost; y=S.clickYield; }
-    else { y=1; } // sin tokens, rendís como a mano
+function calcSup(){
+  let t=0;
+  for(const A of AREAS){ const a=A.id, orch=cntLv(5,a)>0;
+    t+=S.workers.filter(w=>w.area===a).reduce((s,w)=>{
+      let su=LV[w.lv].sup;
+      if(w.lv===4&&orch)su*=.6;
+      if(S.stack==='agy')su*=.85;
+      return s+su;
+    },0);
   }
-  S.pending=Math.max(0,S.pending-y);
-  S.tasksDone+=1; S.clicks+=1;
-  S.cash += TASK_COPY[taskIdx][1];
-  // rotate microcopy occasionally
-  if(S.clicks%3===0){ taskIdx=(taskIdx+1)%TASK_COPY.length; }
-  checkUnlocks();
-  render();
+  return Math.max(0,t-S.trained*1.0);
 }
-// backlog pressure in manual phase
+function mgmtHours(){
+  const T=totalEmps(), unt=Math.max(0,T-S.trained);
+  const managed=Math.min(unt,S.mgr*8);
+  return managed*.35+(unt-managed)*1.0+S.trained*.5+S.mgr*1.5;
+}
+function coordHours(){
+  const T=totalEmps()+S.mgr;
+  return .025*T*T*(S.docs.o&&S.docs.g&&S.docs.a?.7:1);
+}
+function clientOverhead(){
+  const per=P('crm')?.10:(S.docs.o&&S.docs.g&&S.docs.a?.20:.35);
+  return S.clients.length*per;
+}
+function docsWipHours(){ return Object.keys(S.docsWip).length*3; }
+function calcHours(){
+  if(!U('autorun')) return 8+S.clickHours+S.pending*.5;
+  return 8+founderCap()*.5+mgmtHours()+coordHours()+clientOverhead()+calcSup()+docsWipHours()+S.clickHours;
+}
+
+// ════════════════════════════════ MANUAL WORK (botón que nunca desaparece)
+function doTask(){
+  if(S.over)return;
+  S.clicks++; S.weekClicks++;
+  const fatigue=Math.pow(.5,Math.floor(S.weekClicks/15));
+  if(!U('autorun')){
+    S.pending=Math.max(0,S.pending-1);
+    S.tasksDone++;
+    S.cash+=Math.round(TASKS_F0[taskIdx][1]*fatigue);
+    S.clickHours+=.45;
+    if(S.clicks%3===0)taskIdx=(taskIdx+1)%TASKS_F0.length;
+  } else {
+    const val=(P('prompting')?120:50)*fatigue;
+    S.cash+=val;
+    S.clickHours+=.5;
+    // apaga el fuego más caliente: baja demanda insatisfecha vía bono temporal de satisfacción
+    const worst=[...S.clients].sort((x,y)=>x.sat-y.sat)[0];
+    if(worst)worst.sat=Math.min(100,worst.sat+(P('prompting')?.8:.3));
+    if(S.clicks%2===0)taskIdx=(taskIdx+1)%TASKS_AUTO.length;
+  }
+  checkUnlocks(); render();
+}
+let pressureTimer=null;
 function manualPressure(){
-  if(S.over || U('autorun')) return;
-  // tasks pile up faster than comfortable
-  S.pending += 1;
-  if(S.pending>14) S.pending=14;
+  if(!S||S.over||U('autorun'))return;
+  S.pending+=1;
+  S.clickHours*=.88; // la fatiga manual decae despacio
+  S.weekClicks=Math.max(0,S.weekClicks-3); // recuperás el ritmo si frenás
   checkUnlocks(); render();
 }
 
-// ============================================================ UNLOCKS
-function lesson(key,html){ if(S.lessons[key])return; S.lessons[key]=true; logMsg('💡 '+html,'accent'); }
-
-function checkUnlocks(){
-  // N1 Prompt — a las 6 tareas a mano
-  if(!U('prompt') && S.tasksDone>=6){
-    unlock('prompt'); unlock('tokens'); S.tokens=60; S.phase=1;
-    showPanel('pTok'); showPanel('pLog');
-    $('promptBox').hidden=false;
-    logMsg('Se desbloqueó el <b>Nivel 1 · Prompt</b>. Tu primer aliado de IA.','accent');
-    announceLevel('prompt');
+// ════════════════════════════════ TEAM
+function hire(type,area){
+  const E=EMP[type];
+  if(S.cash<E.rec||S.pipeline.length>=2)return;
+  S.cash-=E.rec;
+  S.pipeline.push({type,area,left:E.delay});
+  logMsg('🔎 Búsqueda iniciada: '+E.n+(type!=='mgr'?' para '+AREAS.find(x=>x.id===area).name:'')+' (llega en '+E.delay+' sem). −'+fmt(E.rec),'');
+  if(!U('autorun')){
+    unlock('autorun');
+    clearInterval(pressureTimer);
+    syncPanels();
+    logMsg('Delegaste la búsqueda. <b>Mientras esperás, las semanas corren solas.</b>','good');
+    lesson('l_auto','Soltaste el control por primera vez. El tiempo del negocio ya no es tu tiempo.');
   }
-  // N2 Asistente — a las 20 tareas
-  if(!U('assistant') && S.tasksDone>=20){
-    unlock('assistant'); unlock('clients'); S.phase=2;
-    showPanel('pAreas'); showPanel('pClients'); showPanel('pOp');
-    buildAreas();
-    logMsg('Se desbloqueó el <b>Nivel 2 · Asistente</b>: el primer worker que trabaja <b>solo</b>. Construilo en tu agencia.','accent');
-    announceLevel('assistant');
+  render();
+}
+function pipelineTick(){
+  for(const p of [...S.pipeline]){
+    if(--p.left<=0){
+      S.pipeline=S.pipeline.filter(x=>x!==p);
+      if(p.type==='mgr')S.mgr++;
+      else S.emps[p.area][p.type]++;
+      logMsg('🤝 Se sumó '+pick(HUMAN_NAMES)+' ('+EMP[p.type].n+(p.type!=='mgr'?' · '+AREAS.find(x=>x.id===p.area).name:'')+').','good');
+    }
   }
-  // Autorun — al construir el primer worker autónomo
-  if(!U('autorun') && S.workers.length>0){
-    unlock('autorun'); clearInterval(pressureTimer);
-    $('pClick').classList.add('hidden');
-    $('hsWeek').hidden=false; $('hsRev').hidden=false; $('hctrl').hidden=false;
-    $('weekbar').hidden=false; $('statusLine').hidden=false;
-    $('goalLine').hidden=false;
-    S.opHours=16; $('opHours').value=16;
-    logMsg('Construiste tu primer worker autónomo. <b>Las semanas ahora corren solas.</b> Ya no clickeás tareas: supervisás.','good');
-    lesson('l_auto','Soltaste el mouse. El negocio empezó a moverse sin vos. Ese es el salto.');
-  }
-
-  // --- Desbloqueos por logro (no por semana) ---
-  if(U('autorun')){
-    const R=revNow();
-    // Áreas + pauta — al construir un segundo worker
-    if(!U('areas3') && S.workers.length>=2){
-      unlock('areas3'); unlock('ads');
-      showPanel('pAds'); buildAreas(); buildAds();
-      logMsg('Crecés. Ahora la demanda se separa en <b>Operaciones, Growth y Admin</b>, y podés meter <b>pauta</b> para traer clientes.','accent');
-      lesson('l_areas','Más clientes = más fuegos en más áreas. Un worker no alcanza: necesitás un sistema por área.');
-    }
-    // Equipo humano — al llegar a $4.000/sem
-    if(!U('humans') && R>=4000){
-      unlock('humans'); S.employees=[mkEmp('o'),mkEmp('g'),mkEmp('a')];
-      showPanel('pTeam');
-      logMsg('Tu equipo humano que armaste mientras crecías ahora pesa: <b>salarios + horas tuyas de gestión</b>. Vas a tener que decidir a quién soltar.','warn');
-      lesson('l_humans','Delegar en sistemas a veces significa soltar gente. Duele, pero el héroe-cuello-de-botella muere primero.');
-    }
-    // N3 Workflow — $6.000/sem y 2 Asistentes
-    if(!U('workflow') && R>=6000 && countLv(2)>=2){
-      unlock('workflow'); buildAreas();
-      logMsg('Se desbloqueó el <b>Nivel 3 · Workflow</b>: encadena tareas, no intervenís.','accent');
-      announceLevel('workflow');
-    }
-    // N4 Agente — $9.000/sem y 1 Workflow
-    if(!U('agent') && R>=9000 && countLv(3)>=1){
-      unlock('agent'); buildAreas();
-      logMsg('Se desbloqueó el <b>Nivel 4 · Agente</b>: decide solo, gran capacidad. Cuidado, a veces alucina.','accent');
-      announceLevel('agent');
-    }
-    // N5 Orquestador — $13.000/sem y 1 Agente
-    if(!U('orch') && R>=13000 && countLv(4)>=1){
-      unlock('orch'); buildAreas();
-      logMsg('Se desbloqueó el <b>Nivel 5 · Orquestador</b>: agentes manejando agentes. El endgame.','accent');
-      announceLevel('orch');
+}
+function fireEmp(type,area){
+  const have=type==='mgr'?S.mgr:S.emps[area][type];
+  if(!have)return;
+  const E=EMP[type], sev=Math.round(E.sal*(type==='jr'?3:4)*S.sevMult);
+  showEvent('✂️ Despedir '+E.n, 'Indemnización: <b>'+fmt(sev)+'</b>'+(type!=='mgr'?' ('+AREAS.find(x=>x.id===area).name+')':'')+'. Una persona menos que gestionar… y una inversión que se va.',[
+    {t:'Despedir ('+fmt(sev)+')',f:()=>{ if(S.cash<sev){logMsg('No te alcanza la caja para la indemnización.','warn');return;}
+      S.cash-=sev;
+      if(type==='mgr')S.mgr--; else S.emps[area][type]--;
+      if(S.trained>totalEmps()){S.trained=totalEmps();logMsg('Se fue gente capacitada: esa inversión no vuelve.','bad');}
+      S.moral=Math.max(15,S.moral-6); // los despidos asustan al resto
+      logMsg('✂️ Despediste a '+pick(HUMAN_NAMES)+' ('+E.n+'). −'+fmt(sev),'warn'); }},
+    {t:'Mejor no',f:()=>{}}
+  ]);
+}
+function trainOne(){
+  if(!P('aiops')||S.trained>=totalEmps()||S.cash<1200)return;
+  S.cash-=1200; S.trained++;
+  logMsg('🎓 Capacitaste a '+pick(HUMAN_NAMES)+' en IA-Ops: absorbe supervisión y opera agentes. −'+fmt(1200),'good');
+  render();
+}
+function moralTick(){
+  const hrs=calcHours();
+  let target=WORKMODES[S.workMode].target;
+  if(hrs>55)target-=12;            // el caos del fundador se contagia
+  if(S.trained>0)target+=5;        // invertir en la gente se nota
+  S.moral+=(target-S.moral)*.12;
+  S.moral=Math.max(15,Math.min(100,S.moral));
+}
+function quitsTick(){
+  const hrs=calcHours(), extra=hrs>60?.03:0;
+  const mq=WORKMODES[S.workMode].quit*(S.moral<40?1.8:S.moral>75?.6:1);
+  for(const A of AREAS){ const a=A.id;
+    for(const t of ['jr','sr']){
+      let n=S.emps[a][t];
+      while(n-->0){ if(Math.random()<(EMP[t].quit+extra)*mq){
+        const totBefore=totalEmps();
+        S.emps[a][t]--;
+        const wasTrained=S.trained>0&&Math.random()<S.trained/Math.max(1,totBefore);
+        if(wasTrained){S.trained--;logMsg('👋 Renunció '+pick(HUMAN_NAMES)+' ('+EMP[t].n+', '+AREAS.find(x=>x.id===a).name+') — era de los capacitados en IA-Ops. Duele doble.','bad');}
+        else logMsg('👋 Renunció '+pick(HUMAN_NAMES)+' ('+EMP[t].n+', '+AREAS.find(x=>x.id===a).name+').'+(hrs>60?' El barco hace agua y se nota.':''),'warn');
+        if(S.trained>totalEmps())S.trained=totalEmps();
+      } }
     }
   }
 }
 
-// ============================================================ WEEKLY TICK
-function tick(){
-  if(S.over||evtOpen||!U('autorun')) return;
-  S.week++;
-  if(S.tokenWeeks>0&&--S.tokenWeeks===0){S.tokenMult=1;logMsg('El precio de los tokens se normalizó.','');}
-  if(S.cacWeeks>0&&--S.cacWeeks===0){S.cacMult={meta:1,google:1,tiktok:1};logMsg('Los CPM se normalizaron.','');}
-  if(S.sevWeeks>0&&--S.sevWeeks===0){S.sevMult=1;logMsg('Se cerró la ventana de indemnizaciones reducidas.','');}
-  if(S.capWeeks>0&&--S.capWeeks===0){S.capMult=1;logMsg('El efecto del cambio de modelo terminó. Capacidad normalizada.','');}
-
-  const st=areaStats();
-  S.tokens=Math.max(0,S.tokens-st._need);
-  // auto-compra de tokens (implementación)
-  if(S.autoTokens && S.tokens<st._need){
-    const pr2=Math.round(1600*S.tokenMult), pr5=Math.round(450*S.tokenMult);
-    if(S.cash>=pr2){ S.cash-=pr2; S.tokens+=2000; logMsg('🔧 Auto-compra: +2.000 tokens por '+fmt(pr2)+'.',''); }
-    else if(S.cash>=pr5){ S.cash-=pr5; S.tokens+=500; logMsg('🔧 Auto-compra: +500 tokens por '+fmt(pr5)+'.',''); }
+// ════════════════════════════════ PROJECTS (motor declarativo)
+const PROJECTS=[
+  {id:'prompting',ic:'📚',n:'Capacitación: Prompting',c:2500,
+   vis:()=>N('chatgpt'),req:()=>totalEmps()>=3,reqTxt:()=>'tené 3 empleados ('+totalEmps()+'/3)',
+   d:'Lo básico primero: tu gente rinde +25% y tus clicks ×2,5.',
+   fx:()=>{lesson('l_n1','<b>Nivel 1 · Prompt</b>: la IA como consultor. Pensás vos, ejecutás vos — pero más rápido.');}},
+  {id:'doc',ic:'📋',n:'Documentar procesos',c:2500,multi:AREAS,
+   vis:()=>P('prompting'),
+   reqA:a=>S.areaWeeks[a]>=3&&empArea(a)>=2,reqTxtA:a=>'que '+AREAS.find(x=>x.id===a).name+' trabaje 3 semanas con ≥2 personas',
+   d:'Primero lo hacen las personas; después se documenta. Sin contexto, la IA alucina. (+3h/sem tuyas por 2 semanas — o consultor $7.000 ya)',
+   },
+  {id:'crm',ic:'🛠',n:'CRM con IA',c:5000,sub:150,
+   vis:()=>N('gpts')&&S.clients.length>=6,req:()=>true,reqTxt:()=>'',
+   d:'Tus clientes dejan de caerse solos: la satisfacción decae 50% menos y gestionarlos te cuesta menos horas.'},
+  {id:'mkt',ic:'🛠',n:'Marketing con IA',c:4000,sub:120,
+   vis:()=>N('magnific'),req:()=>true,reqTxt:()=>'',
+   d:'Generación de piezas e imágenes (hola, Magnific): CAC −25% en todos los canales.'},
+  {id:'sales',ic:'🛠',n:'Ventas con IA',c:4500,sub:120,
+   vis:()=>N('gpt4o'),req:()=>true,reqTxt:()=>'',
+   d:'Propuestas y seguimiento con IA: los clientes nuevos entran con fees +20%.'},
+  {id:'wf',ic:'📚',n:'Capacitación: Workflows',c:4000,
+   vis:()=>N('n8n'),req:()=>cntLv(2)>=2&&revNow()>=8000,reqTxt:()=>'2 Asistentes ('+cntLv(2)+'/2) y facturar $8k ('+fmt(revNow())+')',
+   d:'Make, Zapier, n8n: un clic dispara una cadena de pasos. Desbloquea construir Workflows (N3).',
+   fx:()=>{lesson('l_n3','<b>Nivel 3 · Workflow</b>: tu gente dispara cadenas enteras con un clic. Todavía hace falta gente.');}},
+  {id:'ag',ic:'📚',n:'Capacitación: Agentes',c:9000,
+   vis:()=>N('claudecode'),req:()=>cntLv(3)>=2&&revNow()>=18000,reqTxt:()=>'2 Workflows ('+cntLv(3)+'/2) y facturar $18k ('+fmt(revNow())+')',
+   d:'Claude Code y los suyos: IA que ejecuta SOLA. Desbloquea construir Agentes (N4). Nacen crudos: hay que entrenarlos.',
+   fx:()=>{lesson('l_n4','<b>Nivel 4 · Agente</b>: piensa y ejecuta solo. Supervisión, no fe.');}},
+  {id:'aiops',ic:'📚',n:'Capacitación del equipo: IA-Ops',c:6000,
+   vis:()=>P('ag'),req:()=>true,reqTxt:()=>'',
+   d:'Tu gente aprende a operar agentes: cada capacitado ($1.200 c/u después) absorbe 1h de supervisión, cuesta menos gestión y entrena agentes al instante.'},
+  {id:'orch',ic:'📚',n:'Capacitación: Orquestación',c:16000,
+   vis:()=>N('orchnews'),req:()=>trainedAgents()>=2&&revNow()>=25000,reqTxt:()=>'2 Agentes entrenados ('+trainedAgents()+'/2) y facturar $25k ('+fmt(revNow())+')',
+   d:'Agentes manejando agentes. Desbloquea el Orquestador (N5): potencia tus N4 y desploma la supervisión.',
+   fx:()=>{lesson('l_n5','<b>Nivel 5 · Orquestador</b>: el techo. Tu operación se maneja sola.');}},
+  {id:'autotok',ic:'🔧',n:'Auto-compra de tokens',c:12000,
+   vis:()=>cntLv(4)>=1,req:()=>true,reqTxt:()=>'',
+   d:'Una implementación seria: el sistema se repone tokens solo, comprando al precio del día.'},
+  {id:'migsoft',ic:'🔁',n:'Software de migración',c:8000,
+   vis:()=>S.news.claudecode&&(S.migration||S.proj.ag),req:()=>true,reqTxt:()=>'',
+   d:'Las próximas migraciones de modelo se hacen solas. Automatizá hasta el dolor de migrar.'},
+  {id:'ceo',ic:'👔',n:'Contratar CEO y retirarte',c:40000,
+   vis:()=>revNow()>=15000,req:()=>S.cash>=250000&&revNow()>=20000&&calcHours()<=30&&S.docs.o&&S.docs.g&&S.docs.a,
+   reqTxt:()=>'caja $250k ('+fmt(S.cash)+'), facturar $20k ('+fmt(revNow())+'), ≤30h tuyas ('+calcHours().toFixed(0)+'h) y 3 áreas documentadas',
+   d:'El final: un CEO toma tu silla. Nadie compra tu caos: el negocio tiene que andar sin vos.',
+   fx:()=>{endGame('retire');}},
+];
+function projVisible(p){ return p.vis(); }
+function buyProject(id,area){
+  const p=PROJECTS.find(x=>x.id===id); if(!p)return;
+  if(id==='doc'){
+    if(S.docs[area]||S.docsWip[area])return;
+    if(!p.reqA(area)||S.cash<p.c)return;
+    S.cash-=p.c; S.docsWip[area]=2;
+    logMsg('📋 Documentando '+AREAS.find(x=>x.id===area).name+': +3h/sem tuyas por 2 semanas. −'+fmt(p.c),'accent');
+    render(); return;
   }
-  if(st._eff<1&&st._need>0) logMsg('⚠️ Sin tokens: tus workers rinden al '+Math.round(st._eff*100)+'%.','warn');
-
-  const rev=S.clients.reduce((s,c)=>s+c.fee,0);
-  const sal=S.employees.reduce((s,e)=>s+e.salary,0);
-  const ad=S.ads.meta+S.ads.google+S.ads.tiktok;
-  S.cash+=rev-sal-ad; S.lastRev=rev;
-
-  // satisfaction & churn
-  for(const c of [...S.clients]){
-    let cov=0,w=0;
-    for(const a of visAreas()){
-      const d=demOf(c,a.id);
-      const r=st[a.id].dem>0?Math.min(1,st[a.id].cap/st[a.id].dem):1;
-      cov+=r*d; w+=d;
-    }
-    const ratio=w>0?cov/w:1;
-    c.sat=Math.max(0,Math.min(100,c.sat+(ratio-0.9)*40));
-    if(c.sat<40 && Math.random()<(45-c.sat)/120){
-      S.clients=S.clients.filter(x=>x.id!==c.id);
-      logMsg('💔 '+c.name+' se fue ('+fmt(c.fee)+'/sem). No le entregabas.','bad');
-    }
-  }
-  // acquisition
-  if(U('ads')) for(const ch of CHANNELS){
-    const sp=S.ads[ch.id]; if(sp<=0)continue;
-    const exp=sp/(ch.cac*S.cacMult[ch.id]);
-    let n=Math.floor(exp)+(Math.random()<exp%1?1:0);
-    for(let i=0;i<n;i++){
-      const fee=ch.feeMin+Math.random()*(ch.feeMax-ch.feeMin);
-      const c=mkClient(pick(CLIENT_NAMES),fee,ch.sat+Math.random()*10);
-      S.clients.push(c);
-      logMsg('🎉 Cliente nuevo vía '+ch.name+': '+c.name+' ('+fmt(c.fee)+'/sem).','good');
+  if(P(id)||!p.req()||S.cash<p.c)return;
+  S.cash-=p.c; S.proj[id]=true;
+  if(id==='autotok')S.autoTokens=true;
+  if(id==='migsoft'){S.migSoft=true;
+    if(S.migration){S.workers.forEach(x=>x.legacy=false);finishMigration();}}
+  logMsg(p.ic+' '+p.n+' ✓ −'+fmt(p.c)+(p.sub?' (+'+fmt(p.sub)+'/sem)':''),'accent');
+  if(p.fx)p.fx();
+  checkUnlocks(); render();
+}
+function docConsult(area){
+  if(S.docs[area]||S.docsWip[area]||S.cash<7000)return;
+  S.cash-=7000; S.docs[area]=true;
+  logMsg('🧑‍💼 Un consultor documentó '+AREAS.find(x=>x.id===area).name+' por vos. Caro, pero sin tus horas. −'+fmt(7000),'accent');
+  checkUnlocks(); render();
+}
+function docsTick(){
+  for(const a of Object.keys(S.docsWip)){
+    if(--S.docsWip[a]<=0){ delete S.docsWip[a]; S.docs[a]=true;
+      logMsg('📋 '+AREAS.find(x=>x.id===a).name+' documentada. Ahora la IA tiene contexto.','good');
+      if(S.docs.o&&S.docs.g&&S.docs.a)lesson('l_docs','Las 3 áreas documentadas: menos fricción de coordinación y la base para delegar de verdad.');
     }
   }
+}
 
-  checkUnlocks();
+// ════════════════════════════════ TIMELINE / NEWS
+function newsTick(){
+  for(const ev of TIMELINE){
+    if(ev.w<=S.week&&!S.news[ev.id]){
+      S.news[ev.id]=true;
+      $('newsTicker').hidden=false;
+      $('newsTicker').innerHTML='🗞️ '+ev.t;
+      logMsg('🗞️ '+ev.t,'news');
+      if(ev.fx)ev.fx();
+      if(ev.modal){
+        if(ev.modal[2]==='stack'){
+          showEvent(ev.modal[0],ev.modal[1],[
+            {t:'Claude Code (−10% tokens)',f:()=>{S.stack='cc';logMsg('Stack: Claude Code. Tus workers queman −10% de tokens.','good');}},
+            {t:'Codex (−15% builds)',f:()=>{S.stack='codex';logMsg('Stack: Codex. Construir workers cuesta −15%.','good');}},
+            {t:'Antigravity (−15% supervisión)',f:()=>{S.stack='agy';logMsg('Stack: Antigravity. Supervisión de workers −15%.','good');}},
+          ]);
+        } else showEvent(ev.modal[0],ev.modal[1],[{t:'Dale',f:()=>{}}]);
+      }
+    }
+  }
+}
 
-  const h=calcHours();
-  if(h>=80){ endGame(false,'burnout',h); return; }
-  if(S.cash<0){ endGame(false,'quiebra',h); return; }
-  if(rev>=15000 && h<=12){
-    S.streak++;
-    if(S.streak>=3){ endGame(true,'',h); return; }
-    logMsg('✅ Semana ganadora: '+fmt(rev)+' con '+h.toFixed(1)+'h. Racha '+S.streak+'/3.','good');
-  } else if(S.streak>0){ S.streak=0; logMsg('Se cortó la racha. 0/3.','warn'); }
-
-  if(S.cash<3000&&S.cash>=0) logMsg('⚠️ Caja crítica: '+fmt(S.cash)+'.','warn');
-  if(h>=60) logMsg('🔥 '+h.toFixed(0)+'h/sem. Zona de burnout. Delegá o morí.','warn');
-
-  if(--S.nextEvt<=0){ S.nextEvt=3+Math.floor(Math.random()*4); fireEvent(); }
+// ════════════════════════════════ MIGRACIÓN (clic frenético)
+function startMigration(levels,why){
+  const affected=S.workers.filter(w=>levels.includes(w.lv));
+  if(!affected.length)return;
+  affected.forEach(w=>w.legacy=true);
+  if(S.migSoft){
+    affected.forEach(w=>w.legacy=false);
+    logMsg('🔁 Salió '+why+': tu software migró '+affected.length+' workers automáticamente. Ni lo sentiste.','good');
+    return;
+  }
+  S.migration={total:affected.length,why};
+  syncPanels();
+  logMsg('⚡ Salió '+why+': '+affected.length+' workers quedaron en versión vieja (rinden 70%). ¡Migralos!','warn');
+}
+function migrateOne(){
+  if(!S.migration)return;
+  const w=S.workers.find(x=>x.legacy);
+  if(w){w.legacy=false; logMsg('⚡ Migraste un '+LV[w.lv].name+'.','');}
+  if(!S.workers.some(x=>x.legacy)){finishMigration();}
+  render();
+}
+function migConsult(){
+  if(!S.migration)return;
+  const left=S.workers.filter(x=>x.legacy).length, cost=left*800;
+  if(S.cash<cost)return;
+  S.cash-=cost;
+  S.workers.forEach(x=>x.legacy=false);
+  logMsg('🧑‍💼 Una consultora migró tus '+left+' workers restantes. −'+fmt(cost),'accent');
+  finishMigration();
+}
+function finishMigration(){
+  S.migration=null; syncPanels();
+  logMsg('✅ Migración completa. Todo al 100% de nuevo.','good');
+  lesson('l_mig','Migrar a mano una vez está bien. Dos, es un aviso: automatizá hasta el dolor de migrar.');
   render();
 }
 
-// ============================================================ EVENTS
+// ════════════════════════════════ MARKETS
+function walkMarkets(){
+  const g=()=> (Math.random()+Math.random()+Math.random())/1.5-1; // ~N(0,~0.4)
+  S.tokPrice=Math.min(1.60,Math.max(0.55, S.tokPrice*(1+g()*.06)+( .90-S.tokPrice)*.05 ));
+  for(const ch of CHANNELS){
+    S.cacW[ch.id]=Math.min(1.6,Math.max(0.6, S.cacW[ch.id]*(1+g()*.07)+(1-S.cacW[ch.id])*.10 ));
+  }
+}
+function effCAC(ch,covG){
+  let c=ch.cac*S.cacW[ch.id];
+  if(P('mkt'))c*=.75;
+  const over=Math.max(0,S.ads[ch.id]-4000);
+  c*=1+.15*over/1000;
+  if(covG<1)c/=Math.max(.4,covG);
+  return c;
+}
+function buyTokens(n){
+  const price=Math.round(n*S.tokPrice);
+  if(S.cash<price||S.tokens>=tokCap())return;
+  S.cash-=price; S.tokens=Math.min(tokCap(),S.tokens+n);
+  logMsg('⚡ +'+n+' tokens por '+fmt(price)+' ($'+S.tokPrice.toFixed(2)+'/tok).','');
+  render();
+}
+function toggleAutoTokens(){ if(!P('autotok'))return; S.autoTokens=!S.autoTokens; render(); }
+
+// ════════════════════════════════ WEEKLY TICK
+function tick(){
+  if(S.over||evtOpen||!U('autorun'))return;
+  S.week++; S.weekClicks=0; S.clickHours*=.5;
+  if(S.sevWeeks>0&&--S.sevWeeks===0){S.sevMult=1;logMsg('Se cerró la ventana de indemnizaciones reducidas.','');}
+
+  walkMarkets(); newsTick(); pipelineTick(); docsTick();
+
+  // áreas trabajadas (para gate de documentación)
+  for(const A of AREAS){ if(empArea(A.id)>=2)S.areaWeeks[A.id]++; }
+
+  const st=areaStats();
+  // tokens
+  let burn=tokNeed(); if(S.stack==='cc')burn=Math.round(burn*.9);
+  S.tokens=Math.max(0,S.tokens-burn);
+  if(S.autoTokens&&burn>0&&S.tokens<burn*1.5){
+    // buffer de 3 semanas de consumo, comprado al precio del día
+    const want=Math.min(tokCap(),Math.ceil(burn*3))-S.tokens, cost=Math.round(want*S.tokPrice);
+    if(want>0&&S.cash>=cost){S.cash-=cost;S.tokens+=want;logMsg('🔧 Auto-compra: +'+want+' tok por '+fmt(cost)+' ($'+S.tokPrice.toFixed(2)+'/tok).','');}
+    else if(want>0)logMsg('⚠️ Auto-compra sin caja: faltan '+fmt(cost-S.cash)+'.','warn');
+  }
+  if(st._eff<1&&st._need>0)logMsg('⚠️ Sin tokens: tu IA rinde al '+Math.round(st._eff*100)+'%.','warn');
+
+  // entrenamiento de agentes
+  for(const w of S.workers){ if(w.lv===4&&!w.trained){
+    if(S.trained>0){w.trained=true;logMsg('🎓 Tu equipo IA-Ops entrenó un Agente: rinde al 100%.','good');}
+    else if(w.tleft!=null&&--w.tleft<=0){w.trained=true;logMsg('🎓 Un Agente terminó su entrenamiento.','good');}
+  } }
+
+  // economía
+  const rev=revNow();
+  const sal=Object.values(S.emps).reduce((s,e)=>s+e.jr*EMP.jr.sal+e.sr*EMP.sr.sal,0)+S.mgr*EMP.mgr.sal;
+  const subs=(P('crm')?150:0)+(P('mkt')?120:0)+(P('sales')?120:0);
+  const ad=S.ads.meta+S.ads.google+S.ads.tiktok;
+
+  // cobranzas (Admin)
+  let collected=rev;
+  if(U('collections')){
+    const covA=st.a.dem>0?Math.min(1,st.a.cap/st.a.dem):1;
+    collected=rev*covA;
+    if(rev-collected>1)S.receivables.push({amt:rev-collected,age:0});
+    if(covA>=1&&S.receivables.length){
+      const spare=(st.a.cap-st.a.dem)/Math.max(1,st.a.dem);
+      let pull=rev*Math.min(.5,Math.max(.1,spare));
+      for(const r of S.receivables){const take=Math.min(r.amt,pull);r.amt-=take;collected+=take;pull-=take;if(pull<=0)break;}
+      S.receivables=S.receivables.filter(r=>r.amt>1);
+    }
+    for(const r of S.receivables){ if(++r.age>6){logMsg('🕳 '+fmt(r.amt)+' se volvieron incobrables. Admin abandonado se paga caro.','bad');} }
+    S.receivables=S.receivables.filter(r=>r.age<=6);
+  }
+  S.cash+=collected-sal-subs-ad;
+  S.lastRev=rev;
+
+  // satisfacción / churn (Operaciones) — sobrecarga del fundador también drena
+  const hrs=calcHours();
+  for(const c of [...S.clients]){
+    let cov=0,wsum=0;
+    for(const A of AREAS){const d=c.dem[A.id];const r=st[A.id].dem>0?Math.min(1,st[A.id].cap/st[A.id].dem):1;cov+=r*d;wsum+=d;}
+    const ratio=wsum>0?cov/wsum:1;
+    c.sat=Math.max(0,Math.min(100,c.sat+(ratio-.9)*(P('crm')?20:40)-(hrs>55?2:0)));
+    if(c.sat<40&&Math.random()<(45-c.sat)/120){
+      S.clients=S.clients.filter(x=>x.id!==c.id);
+      logMsg('💔 '+c.name+' se fue ('+fmt(c.fee)+'/sem).','bad');
+    } else if(Math.random()<(P('crm')?.012:.022)){
+      S.clients=S.clients.filter(x=>x.id!==c.id);
+      logMsg('📂 Terminó el contrato con '+c.name+' ('+fmt(c.fee)+'/sem). Los clientes no son para siempre.','');
+    }
+  }
+
+  // adquisición (Growth gatea la pauta) + orgánico
+  if(U('ads')){
+    const covG=st.g.dem>0?Math.min(1.5,st.g.cap/st.g.dem):1;
+    for(const ch of CHANNELS){
+      const sp=S.ads[ch.id]; if(sp<=0)continue;
+      const exp=sp/effCAC(ch,covG);
+      let n=Math.floor(exp)+(Math.random()<exp%1?1:0);
+      for(let i=0;i<n;i++){
+        let fee=ch.feeMin+Math.random()*(ch.feeMax-ch.feeMin);
+        if(P('sales'))fee*=1.2;
+        const c=mkClient(pick(CLIENT_NAMES),fee,ch.sat+Math.random()*10);
+        S.clients.push(c);
+        logMsg('🎉 Cliente vía '+ch.name+': '+c.name+' ('+fmt(c.fee)+'/sem).','good');
+      }
+    }
+    if(covG>1.1){
+      let p=Math.min(.5,(covG-1.1)*.8); if(N('spaces'))p=Math.min(.85,p*2);
+      if(Math.random()<p){
+        const c=mkClient(pick(CLIENT_NAMES),900+Math.random()*1400,75);
+        S.clients.push(c);
+        logMsg('🌱 Contenido orgánico trajo a '+c.name+' ('+fmt(c.fee)+'/sem). Gratis.','good');
+      }
+    }
+  }
+
+  moralTick(); quitsTick();
+
+  // hijo
+  if(!S.kidWarnW&&!S.kidArrived&&S.week>=95&&S.week<=135&&Math.random()<.05){
+    if(hrs<=60){S.kidWarnW=S.week+3;
+      showEvent('👶 Noticia grande','En unas semanas se agranda la familia. Tu vida fuera del negocio va a pesar más: <b>tu techo de burnout va a bajar de 80h a 65h</b>. Prepará la agencia.',[{t:'A organizarse',f:()=>{}}]);}
+  }
+  if(S.kidWarnW&&S.week>=S.kidWarnW&&!S.kidArrived){
+    S.kidArrived=true;S.burnCap=65;
+    logMsg('👶 ¡Llegó! Bienvenido al mejor motivo para trabajar menos. Burnout ahora a 65h.','accent');
+  }
+
+  // win/lose
+  const h2=calcHours();
+  if(h2>=S.burnCap){endGame('burnout');return;}
+  if(S.cash<0){endGame('quiebra');return;}
+  if(rev>=15000&&h2<=12){
+    S.streak++;
+    if(S.streak===3&&!S.freedomWon){S.freedomWon=true;
+      showEvent('🏆 Libertad operativa','Facturás <b>'+fmt(rev)+'/sem</b> trabajando <b>'+h2.toFixed(1)+'h</b>, tres semanas seguidas. El negocio ya no te necesita en el medio.<br><br>Ahora el final: <b>juntá $250k de caja y contratá un CEO</b> para retirarte del todo.',[{t:'Por el retiro',f:()=>{}}]);
+      logMsg('🏆 LIBERTAD: ≤12h sostenidas. Siguiente parada: el retiro.','accent');}
+  } else if(S.streak>0&&!S.freedomWon){S.streak=0;}
+
+  if(S.cash<3000&&S.cash>=0)logMsg('⚠️ Caja crítica: '+fmt(S.cash)+(S.receivables.length?' (tenés '+fmt(S.receivables.reduce((s,r)=>s+r.amt,0))+' por cobrar trabados)':''),'warn');
+  if(h2>=S.burnCap-15)logMsg('🔥 '+h2.toFixed(0)+'h/sem. Zona de burnout. Delegá o morí.','warn');
+
+  // reforma laboral garantizada en la era de reducción
+  if(!S.reformDone&&S.week>=100&&S.week<=140&&totalEmps()>=10&&Math.random()<.08){
+    S.reformDone=true;S.sevMult=.5;S.sevWeeks=8;
+    showEvent('🏛 Reforma laboral','Ventana de 8 semanas con indemnizaciones al 50%. Si vas a reestructurar, es ahora.',[{t:'Tomo nota',f:()=>{}}]);
+  }
+  if(--S.nextEvt<=0){S.nextEvt=6+Math.floor(Math.random()*6);fireEvent();}
+
+  checkUnlocks(); save(); render();
+}
+
+// ════════════════════════════════ EVENTS (dosificados)
 function fireEvent(){
   const avgSat=S.clients.length?S.clients.reduce((a,c)=>a+c.sat,0)/S.clients.length:0;
   const pool=[];
-  if(!S.gotGuru) pool.push('guru');
-  pool.push('tokenspike','workshop','modelonuevo');
-  if(U('ads')) pool.push('cpm');
-  if(S.employees.length>0) pool.push('renuncia','reforma');
-  if(S.workers.some(w=>w.lv>=4)) pool.push('alucina');
-  if(S.workers.some(w=>w.lv>=3)) pool.push('modelodeprecado');
-  if(avgSat>72 && S.clients.length>=3) pool.push('referido');
-  if(!pool.length){ S.nextEvt=2; return; }
+  if(!S.gotGuru&&P('prompting'))pool.push('guru');
+  pool.push('workshop','tokmove','cacmove');
+  if(S.workers.some(w=>w.lv>=4&&w.trained)&&S.trained===0)pool.push('alucina');
+  if(avgSat>72&&S.clients.length>=4)pool.push('referido');
   const e=pick(pool);
-
-  if(e==='guru'){ S.gotGuru=true; showEvent('🧙 Apareció un gurú','"Con mi curso de PROMPTS MÁGICOS ($1.500) tus workers rinden EL DOBLE. Cupos limitados, crack."',[
-    {t:'Comprar ($1.500)',f:()=>{S.cash-=1500;logMsg('Compraste el curso. Era humo. No pasó nada. −$1.500.','bad');}},
-    {t:'Ignorarlo',f:()=>{logMsg('Ignoraste al gurú. Los sistemas le ganan al hype. Siempre.','good');}}
-  ]); }
-  else if(e==='cpm'){ S.cacMult.meta=1.5;S.cacWeeks=5; showEvent('📉 Subió el CPM en Meta','Cambio de algoritmo. Adquirir por Meta cuesta +50% por 5 semanas.',[{t:'Ajusto la pauta',f:()=>{}}]); }
-  else if(e==='tokenspike'){ S.tokenMult=2;S.tokenWeeks=4; showEvent('⚡ Crisis de cómputo','Los proveedores duplicaron precios. Tokens ×2 por 4 semanas.',[{t:'A bancársela',f:()=>{}}]); }
-  else if(e==='workshop'){ showEvent('💼 Te piden un workshop','Un cliente grande paga $3.000 por un taller presencial. Pero te come 8 horas tuyas.',[
-    {t:'Aceptar (+$3.000, +8h)',f:()=>{S.cash+=3000;S.opHours=Math.min(40,S.opHours+8);$('opHours').value=S.opHours;logMsg('Diste el workshop. +$3.000, pero volviste a la trampa del tiempo por plata.','warn');}},
-    {t:'Rechazar',f:()=>{logMsg('Rechazaste el workshop. Tu tiempo no está a la venta.','good');}}
-  ]); }
-  else if(e==='renuncia'&&S.employees.length){ const emp=pick(S.employees);
-    showEvent('👋 '+emp.name+' renunció','Se va a un corporativo. Sin indemnización, pero perdés su capacidad en '+AREAS.find(a=>a.id===emp.area).name+'.',[
-    {t:'Que le vaya bien',f:()=>{S.employees=S.employees.filter(x=>x.id!==emp.id);}}]); }
-  else if(e==='alucina'){ showEvent('🤖 Tu Agente alucinó','Mandó un reporte con números inventados a un cliente. Hay incendio.',[
-    {t:'Auditoría ($2.000)',f:()=>{S.cash-=2000;logMsg('Pagaste auditoría. Cliente retenido. Los Agentes necesitan supervisión, no fe.','warn');}},
-    {t:'No hacer nada',f:()=>{if(S.clients.length){const c=pick(S.clients);S.clients=S.clients.filter(x=>x.id!==c.id);logMsg('💔 '+c.name+' se fue por el papelón del Agente.','bad');}}}
-  ]); }
-  else if(e==='referido'){ const c=mkClient(pick(CLIENT_NAMES),2000+Math.random()*1500,80);S.clients.push(c);
-    showEvent('🤝 Te llegó un referido','Tus clientes están contentos y te recomendaron. '+c.name+' entra sin costo ('+fmt(c.fee)+'/sem).',[{t:'Bienvenido',f:()=>{}}]); }
-  else if(e==='reforma'){ S.sevMult=0.5;S.sevWeeks=6; showEvent('🏛 Reforma laboral','Ventana de 6 semanas con indemnizaciones al 50%. Si ibas a reestructurar, es ahora.',[{t:'Tomo nota',f:()=>{}}]); }
-  else if(e==='modelonuevo'){ showEvent('🚀 Salió un modelo nuevo','Más capacidad por token. Migrar cuesta $2.500 y un poco de tu semana, pero tus workers rinden +20% por 6 semanas.',[
-    {t:'Migrar ($2.500)',f:()=>{S.cash-=2500;S.capMult=1.2;S.capWeeks=6;logMsg('Migraste al modelo nuevo. +20% de capacidad por 6 semanas. Adoptaste con criterio, no por FOMO.','good');}},
-    {t:'No migrar',f:()=>{logMsg('No corriste atrás del hype. Tu sistema sigue andando igual. Ya vas a migrar cuando convenga.','good');}}
-  ]); }
-  else if(e==='modelodeprecado'){ showEvent('📅 Discontinúan tu modelo','El proveedor da de baja el modelo de tus workers en unas semanas. Migrá ahora o tu capacidad cae.',[
-    {t:'Migrar ahora ($2.500)',f:()=>{S.cash-=2500;logMsg('Migraste a tiempo. Mantener la infra no es glamoroso, pero es parte del laburo.','warn');}},
-    {t:'Postergar',f:()=>{S.capMult=0.65;S.capWeeks=4;logMsg('Postergaste la migración. Tus workers rinden al 65% por 4 semanas. La deuda de infra se paga.','bad');}}
-  ]); }
-  else { S.nextEvt=2; }
+  if(e==='guru'){S.gotGuru=true;showEvent('🧙 Apareció un gurú','"Con mi curso de PROMPTS MÁGICOS ($1.500) tu equipo rinde EL DOBLE. Cupos limitados, crack."',[
+    {t:'Comprar ($1.500)',f:()=>{S.cash-=1500;logMsg('Era humo. No pasó nada. −$1.500.','bad');}},
+    {t:'Ignorarlo',f:()=>{logMsg('Ignoraste al gurú. Los sistemas le ganan al hype.','good');}}]);}
+  else if(e==='workshop'){showEvent('💼 Te piden un workshop','$4.000 por un taller presencial. Pero te come 6 horas de tu semana.',[
+    {t:'Aceptar (+$4.000, +6h)',f:()=>{S.cash+=4000;S.clickHours+=6;logMsg('Workshop dado. Plata por tiempo: la trampa de siempre.','warn');}},
+    {t:'Rechazar',f:()=>{logMsg('Tu tiempo no está a la venta.','good');}}]);}
+  else if(e==='tokmove'){const up=Math.random()<.5;S.tokPrice=Math.min(1.6,Math.max(.55,S.tokPrice*(up?1.35:0.7)));logMsg('🗞️ El mercado de cómputo se movió: token '+(up?'subió':'bajó')+' a $'+S.tokPrice.toFixed(2)+'.',up?'warn':'good');}
+  else if(e==='cacmove'){const ch=pick(CHANNELS);const up=Math.random()<.6;S.cacW[ch.id]=Math.min(1.6,Math.max(.6,S.cacW[ch.id]*(up?1.3:0.75)));logMsg('🗞️ CAC de '+ch.name+' '+(up?'subió':'bajó')+'.',up?'warn':'good');}
+  else if(e==='alucina'){showEvent('🤖 Un Agente alucinó','Mandó números inventados a un cliente. Sin equipo IA-Ops, nadie lo vio venir.',[
+    {t:'Auditoría ($2.000)',f:()=>{S.cash-=2000;logMsg('Auditoría pagada. Cliente retenido.','warn');}},
+    {t:'No hacer nada',f:()=>{if(S.clients.length){const c=pick(S.clients);S.clients=S.clients.filter(x=>x.id!==c.id);logMsg('💔 '+c.name+' se fue por el papelón.','bad');}}}]);}
+  else if(e==='referido'){const c=mkClient(pick(CLIENT_NAMES),1800+Math.random()*1600,80);S.clients.push(c);logMsg('🤝 Referido: '+c.name+' entra sin CAC ('+fmt(c.fee)+'/sem).','good');}
 }
-let modalQueue=[];
-function showEvent(title,body,actions){
-  if(evtOpen){ modalQueue.push([title,body,actions]); return; } // si hay uno abierto, encolar
-  evtOpen=true;
-  $('modal').innerHTML='<h2>'+title+'</h2><p>'+body+'</p><div class="acts">'+
-    actions.map((a,i)=>'<button class="btn '+(i===0?'primary':'')+'" onclick="evtAct('+i+')">'+a.t+'</button>').join('')+'</div>';
-  window._acts=actions; $('overlay').style.display='flex';
-}
-function evtAct(i){ window._acts[i].f(); evtOpen=false; $('overlay').style.display='none'; checkUnlocks(); render(); pumpModals(); }
-function pumpModals(){ if(evtOpen||!modalQueue.length)return; const m=modalQueue.shift(); showEvent(m[0],m[1],m[2]); }
 
-// avisos de nivel (modal que pausa y explica)
-const LEVEL_INFO={
-  prompt:{t:'🔓 Nivel 1 · Prompt', b:'Tu IA con un buen prompt: un consultor experto a pedido. <b>Pensás vos, ejecutás vos</b>, pero rendís mucho más por click. No te saca del medio: te hace más rápido.'},
-  assistant:{t:'🔓 Nivel 2 · Asistente', b:'El primer worker que trabaja <b>solo</b>: maneja una categoría entera de tareas sin que la toques. <b>Pensás vos, ejecuta la IA.</b> Acá empieza la delegación de verdad.'},
-  workflow:{t:'🔓 Nivel 3 · Workflow', b:'Encadena tareas en un proceso. Ya no intervenís pieza por pieza: armás el flujo y corre. Más capacidad y más tokens que un Asistente.'},
-  agent:{t:'🔓 Nivel 4 · Agente', b:'Decide y ejecuta <b>solo</b>, con mucho volumen. Pero a veces alucina. Se potencia con <b>supervisión, no con fe</b>.'},
-  orch:{t:'🔓 Nivel 5 · Orquestador', b:'Agentes manejando agentes. Tu operación se maneja sola y baja la supervisión de toda el área. El techo: acá tus horas se desploman.'},
-};
-function announceLevel(key){ const L=LEVEL_INFO[key]; if(L) showEvent(L.t, L.b, [{t:'Dale',f:()=>{}}]); }
-
-// ============================================================ ACTIONS
-function buildPrompt(){
-  if(S.cash<PROMPT.cost) return;
-  S.cash-=PROMPT.cost; S.prompts+=1; S.clickYield=1+S.prompts*2;
-  logMsg('🛠 Construiste un Prompt. Cada click rinde '+S.clickYield+' tareas (gasta '+S.prompts+' tok).','good');
-  render();
-}
+// ════════════════════════════════ WORKERS
 function buildWorker(areaId){
-  const lv=+$('sel-'+areaId).value, L=LV[lv];
-  if(S.cash<L.cost) return;
-  S.cash-=L.cost; S.workers.push({id:rid(),area:areaId,lv});
-  logMsg('🛠 '+L.name+' (N'+lv+') en '+AREAS.find(a=>a.id===areaId).name+'. −'+fmt(L.cost)+'.','good');
+  const sel=$('sel-'+areaId); if(!sel)return;
+  const lv=+sel.value, L=LV[lv];
+  let cost=L.cost; if(S.stack==='codex')cost=Math.round(cost*.85);
+  if(S.cash<cost)return;
+  if((lv===2||lv===3)&&cntLv(lv,areaId)>=L.max)return;
+  S.cash-=cost;
+  const w={id:rid(),area:areaId,lv};
+  if(lv===4){w.trained=S.trained>0;w.tleft=w.trained?0:2;
+    if(!w.trained)logMsg('🦾 Agente nuevo en '+AREAS.find(a=>a.id===areaId).name+': crudo (rinde 25). Entrenalo: $2.500 o esperá 2 semanas. −'+fmt(cost),'good');
+    else logMsg('🦾 Agente en '+AREAS.find(a=>a.id===areaId).name+', entrenado al toque por tu equipo IA-Ops. −'+fmt(cost),'good');}
+  else logMsg(L.icon+' '+L.name+' en '+AREAS.find(a=>a.id===areaId).name+'. −'+fmt(cost),'good');
+  S.workers.push(w);
+  S.lastLv[areaId]=lv;
   checkUnlocks(); render();
 }
-function scrapWorker(id){
-  const w=S.workers.find(x=>x.id===id); if(!w)return;
-  S.workers=S.workers.filter(x=>x.id!==id);
-  logMsg('🗑 Diste de baja un '+LV[w.lv].name+'. Sin indemnización: es la gracia.','');
+function trainAgent(id){
+  const w=S.workers.find(x=>x.id===id);
+  if(!w||w.trained||S.cash<2500)return;
+  S.cash-=2500; w.trained=true; w.tleft=0;
+  logMsg('🎓 Agente entrenado a pago. −'+fmt(2500),'');
   render();
 }
-function fireEmp(id){
-  const e=S.employees.find(x=>x.id===id); if(!e)return;
-  const sev=Math.round(e.salary*4*S.sevMult);
-  if(!confirm('Despedir a '+e.name+' cuesta '+fmt(sev)+' de indemnización. ¿Confirmar?'))return;
-  S.cash-=sev; S.employees=S.employees.filter(x=>x.id!==id);
-  logMsg('✂️ Despediste a '+e.name+'. Indemnización '+fmt(sev)+'. Una persona menos que gestionar.','warn');
+function scrapWorker(area,lv){
+  const w=S.workers.find(x=>x.area===area&&x.lv===lv);
+  if(!w)return;
+  S.workers=S.workers.filter(x=>x.id!==w.id);
+  if(S.migration&&!S.workers.some(x=>x.legacy))finishMigration();
+  logMsg('🗑 Diste de baja un '+LV[lv].name+'. Sin indemnización: es la gracia.','');
   render();
 }
-function buyTokens(n,base){
-  const price=Math.round(base*S.tokenMult);
-  if(S.cash<price)return;
-  S.cash-=price; S.tokens+=n;
-  logMsg('⚡ Compraste '+n+' tokens por '+fmt(price)+'.','');
-  render();
-}
-function setOp(v){ S.opHours=+v; render(); }
-function buyAutoTokens(){
-  if(S.autoBought||S.cash<3000)return;
-  S.cash-=3000; S.autoBought=true; S.autoTokens=true;
-  logMsg('🔧 Implementaste la auto-compra de tokens. −'+fmt(3000)+'. Ahora el sistema se repone solo.','good');
-  lesson('l_autotok','Automatizaste hasta la compra de tokens. Una implementación que se paga sola en tu tiempo.');
-  render();
-}
-function toggleAutoTokens(){ if(!S.autoBought)return; S.autoTokens=!S.autoTokens; logMsg('Auto-compra de tokens: '+(S.autoTokens?'activada':'desactivada')+'.',''); render(); }
 
-// ============================================================ END
-function endGame(won,reason,h){
-  S.over=true; clearInterval(timer); evtOpen=true;
-  const mrr=S.lastRev*4; let title,body;
-  if(won){
-    title='🏆 Te despediste de tu propia operación';
-    body='<p>Facturás <b>'+fmt(S.lastRev)+'/sem</b> ('+fmt(mrr)+' MRR) trabajando <b style="color:var(--good)">'+h.toFixed(1)+'h</b>. El negocio funciona sin vos en el medio.</p><p><b>Eso no es magia. Es un sistema.</b> Personas + workers de IA, cada uno en su nivel.</p>';
-  } else if(reason==='burnout'){
+// ════════════════════════════════ UNLOCKS / REVEAL
+function lesson(k,html){ if(S.lessons[k])return; S.lessons[k]=true; logMsg('💡 '+html,'accent'); }
+function checkUnlocks(){
+  if(!U('team')&&S.tasksDone>=5){unlock('team');syncPanels();
+    logMsg('No das abasto. <b>Contratá a tu primera persona</b> — la era de la IA recién empieza y esto se hace con gente.','accent');}
+  if(!U('projects')&&totalEmps()>=1){unlock('projects');unlock('log');syncPanels();
+    logMsg('🧭 Se abrió el panel de <b>Proyectos</b>: capacitaciones y sistemas. Ahí se gana este juego.','accent');}
+  if(!U('ads')&&totalEmps()>=3){unlock('ads');syncPanels();
+    logMsg('📣 Con equipo podés crecer: se abrió la <b>pauta</b>. Cada cliente nuevo es más trabajo para tu gente.','accent');}
+  if(!U('areas')&&P('prompting')){unlock('areas');unlock('clients');syncPanels();buildAreas();
+    logMsg('🏗 Ahora ves tu agencia por áreas: cubrí la demanda o los clientes se van.','accent');}
+  if(!U('tokens')&&N('gpts')&&P('prompting')){unlock('tokens');S.tokens=Math.max(S.tokens,200);syncPanels();
+    logMsg('⚡ La IA corre con <b>tokens</b>. Arrancás con 200. El precio se mueve: comprá barato.','accent');}
+  if(!U('collections')&&S.clients.length>=8){unlock('collections');syncPanels();
+    showEvent('🗂 Admin existe','Con '+S.clients.length+' clientes, facturar no alcanza: hay que <b>cobrar</b>. Si Admin no cubre su demanda, la plata queda <b>por cobrar</b> — y lo que envejece más de 6 semanas se vuelve incobrable.',[{t:'Entendido',f:()=>{}}]);}
+}
+
+// ════════════════════════════════ END / SHARE
+function endGame(kind){
+  if(S.over)return;
+  S.over=true; evtOpen=true;
+  const h=calcHours(), mrr=S.lastRev*4;
+  let title,body;
+  if(kind==='retire'){
+    title='🏝 Te retiraste';
+    body='<p>'+dateOf(S.week)+'. Contrataste un CEO, firmaste y saliste por la puerta con <b>'+fmt(S.cash)+'</b> de caja y un negocio que factura <b>'+fmt(S.lastRev)+'/sem</b> ('+fmt(mrr)+' MRR) sin vos.</p><p><b>De clickear WhatsApps en 2022 a esto.</b> No fue magia: documentaste, capacitaste, delegaste — primero en gente, después en IA.</p>';
+  } else if(kind==='burnout'){
     title='🔥 Burnout';
-    body='<p>Llegaste a <b style="color:var(--bad)">'+h.toFixed(0)+'h semanales</b>. Tu cuerpo dijo basta en la semana '+S.week+'.</p><p>Quisiste ser el héroe y terminaste siendo el cuello de botella. <b>El hub muere primero.</b></p>';
+    body='<p>Llegaste a <b style="color:var(--bad)">'+h.toFixed(0)+'h</b> ('+dateOf(S.week)+'). Tu cuerpo dijo basta.</p><p>Quisiste ser el héroe y fuiste el cuello de botella. <b>El hub muere primero.</b></p>';
   } else {
     title='📉 Quiebra';
-    body='<p>Te quedaste sin caja en la semana '+S.week+'. Facturabas '+fmt(S.lastRev)+'/sem pero la estructura te comió.</p><p>Crecer sin sistema es una forma más cara de fundirse.</p>';
+    body='<p>Te quedaste sin caja en '+dateOf(S.week)+'. Facturabas '+fmt(S.lastRev)+'/sem pero la estructura te comió.</p><p>Crecer sin sistema es una forma más cara de fundirse.</p>';
   }
   $('modal').innerHTML='<h2>'+title+'</h2>'+body+
     '<div class="kpis">'+
     '<div class="kpi"><div class="k">Semanas</div><div class="v">'+S.week+'</div></div>'+
     '<div class="kpi"><div class="k">Clicks a mano</div><div class="v">'+S.clicks+'</div></div>'+
-    '<div class="kpi"><div class="k">Clientes</div><div class="v">'+S.clients.length+'</div></div>'+
-    '<div class="kpi"><div class="k">Workers IA</div><div class="v">'+S.workers.length+'</div></div>'+
-    '</div>'+
-    (won?'<p class="small muted">¿Querés que esto pase en tu negocio de verdad? Eso es lo que hago.</p>':'')+
-    '<div class="acts">'+
-    '<button class="btn" onclick="share()">Compartir resultado</button>'+
+    '<div class="kpi"><div class="k">Equipo</div><div class="v">'+(totalEmps()+S.mgr)+'</div></div>'+
+    '<div class="kpi"><div class="k">Workers IA</div><div class="v">'+S.workers.length+'</div></div></div>'+
+    (kind==='retire'?'<p class="small muted">¿Querés que esto pase en tu negocio de verdad? Eso es lo que hago.</p>':'')+
+    '<div class="acts"><button class="btn" onclick="share()">Compartir resultado</button>'+
     '<button class="btn primary" onclick="restart()">Jugar de nuevo</button></div>';
   $('overlay').style.display='flex';
+  localStorage.removeItem('dom_save');
 }
 function share(){
-  const won=S.streak>=3;
-  const txt=won
-    ? 'Me despedí de mi propia operación en '+S.week+' semanas jugando Delegá o Morí 🏆 ¿Llegás al Orquestador?'
-    : 'Aguanté '+S.week+' semanas en Delegá o Morí antes de '+(S.cash<0?'fundirme':'quemarme')+' 🔥 ¿Podés más?';
-  if(navigator.clipboard) navigator.clipboard.writeText(txt).then(()=>alert('Copiado. Pegalo donde quieras.'),()=>{});
+  const txt=S.cash>=250000&&S.over?'Me retiré de mi propia agencia en '+dateOf(S.week)+' jugando Delegá o Morí 🏝 ¿Llegás vos?'
+    :'Sobreviví '+S.week+' semanas de la era de la IA en Delegá o Morí 🔥 ¿Podés más?';
+  if(navigator.clipboard)navigator.clipboard.writeText(txt).then(()=>alert('Copiado. Pegalo donde quieras.'),()=>{});
 }
 
-// ============================================================ UI
-function showPanel(id){ const el=$(id); if(!el)return; el.classList.remove('hidden'); el.classList.add('glow'); setTimeout(()=>el.classList.remove('glow'),600); }
+// ════════════════════════════════ MODALS
+function showEvent(title,body,actions){
+  if(evtOpen){modalQueue.push([title,body,actions]);return;}
+  evtOpen=true;
+  $('modal').innerHTML='<h2>'+title+'</h2><p>'+body+'</p><div class="acts">'+
+    actions.map((a,i)=>'<button class="btn '+(i===0?'primary':'')+'" onclick="evtAct('+i+')">'+a.t+'</button>').join('')+'</div>';
+  window._acts=actions; $('overlay').style.display='flex';
+}
+function evtAct(i){window._acts[i].f();evtOpen=false;$('overlay').style.display='none';checkUnlocks();render();pump();}
+function pump(){if(evtOpen||!modalQueue.length)return;const m=modalQueue.shift();showEvent(m[0],m[1],m[2]);}
 
+// ════════════════════════════════ UI
+function syncPanels(){
+  $('pClick').classList.remove('hidden');
+  $('pTeam').classList.toggle('hidden',!U('team'));
+  $('pProj').classList.toggle('hidden',!U('projects'));
+  $('pAreas').classList.toggle('hidden',!U('areas'));
+  $('pAds').classList.toggle('hidden',!U('ads'));
+  $('pClients').classList.toggle('hidden',!U('clients'));
+  $('pTok').classList.toggle('hidden',!U('tokens'));
+  $('pLog').classList.toggle('hidden',!U('log'));
+  $('pMig').classList.toggle('hidden',!S.migration);
+  $('hsWeek').hidden=!U('autorun');
+  $('hctrl').hidden=!U('autorun');
+  $('weekbar').hidden=!U('autorun');
+  $('statusLine').hidden=!U('areas');
+  $('goalLine').hidden=!U('areas');
+  $('hsTok').hidden=!U('tokens');
+}
 function buildAreas(){
-  const opts=lv=>LV[lv]?`<option value="${lv}">N${lv} ${LV[lv].name} · ${fmt(LV[lv].cost)}</option>`:'';
-  let avail=[2]; if(U('workflow'))avail.push(3); if(U('agent'))avail.push(4); if(U('orch'))avail.push(5);
-  $('areasBody').innerHTML=visAreas().map(a=>`
-    <div class="area" id="area-${a.id}">
-      <div class="row"><span class="nm grow">${a.name}</span><span class="small muted" id="ratio-${a.id}"></span></div>
-      <div class="small muted">${a.desc}</div>
-      <div class="capwrap">
-        <div class="capbar"><i id="bar-${a.id}"></i></div>
-        <div class="capline"><span id="dem-${a.id}">dem 0</span><span id="cap-${a.id}">cap 0</span></div>
+  $('areasBody').innerHTML=AREAS.map(A=>`
+    <div class="area" id="area-${A.id}">
+      <div class="row"><span class="nm grow">${A.name}</span><span class="covpct" id="cov-${A.id}">—</span></div>
+      <div class="small muted">${A.desc}</div>
+      <div class="capbar"><i id="bar-${A.id}"></i></div>
+      <div class="capline"><span id="dem-${A.id}"></span><span id="cap-${A.id}"></span></div>
+      <div class="faltan" id="falta-${A.id}"></div>
+      <div class="chips" id="chips-${A.id}"></div>
+      <div class="buildrow" id="brow-${A.id}">
+        <select id="sel-${A.id}" onchange="S.lastLv['${A.id}']=+this.value;render()"></select>
+        <button class="btn primary small" id="build-${A.id}" onclick="buildWorker('${A.id}')">Construir</button>
       </div>
-      <div class="faltan" id="falta-${a.id}"></div>
-      <div class="chips" id="chips-${a.id}"></div>
-      <div class="buildrow">
-        <select id="sel-${a.id}" onchange="render()">${avail.map(opts).join('')}</select>
-        <button class="btn primary small" id="build-${a.id}" onclick="buildWorker('${a.id}')">Construir</button>
-      </div>
-      <div class="binfo" id="binfo-${a.id}"></div>
+      <div class="binfo" id="binfo-${A.id}"></div>
     </div>`).join('');
 }
 function buildAds(){
   $('adsBody').innerHTML=CHANNELS.map(ch=>`
     <div class="adrow">
       <span class="ch">${ch.name}</span>
-      <input type="range" id="ad-${ch.id}" min="0" max="5000" step="250" value="${S.ads[ch.id]}" oninput="S.ads['${ch.id}']=+this.value;render()">
+      <input type="range" id="ad-${ch.id}" min="0" max="8000" step="500" value="${S.ads[ch.id]}" oninput="S.ads['${ch.id}']=+this.value;render()">
       <span class="amt" id="adv-${ch.id}"></span>
     </div>
     <div class="adnote" id="adn-${ch.id}"></div>`).join('');
 }
+function availLevels(area){
+  const out=[];
+  if(P('prompting')&&N('gpts')&&S.docs[area])out.push(2);
+  if(P('wf')&&S.docs[area])out.push(3);
+  if(P('ag'))out.push(4);
+  if(P('orch'))out.push(5);
+  return out;
+}
+function toggleSort(){S.sortMode=S.sortMode==='fee'?'sat':'fee';$('sortBtn').textContent='orden: '+(S.sortMode==='fee'?'fee':'satisf.');render();}
 
 function render(){
   if(!S)return;
-  // header (los números los pinta el loop rAF)
-  $('stWeek').textContent=S.week;
-  $('hsCash').hidden=!U('prompt'); $('hsTok').hidden=!U('tokens');
-
-  // hero (hNum/hFill los pinta el loop)
-  if(U('autorun'))
-    $('hBreak').textContent='8h dirección + '+S.employees.length+'h gestión + '+calcSup().toFixed(1)+'h supervisión + '+S.opHours+'h operación manual';
-  else
-    $('hBreak').textContent='Cada tarea que hacés a mano te hunde un poco más. Así no escala.';
+  $('stWeek').textContent='S'+S.week;
+  $('stDate').textContent=dateOf(S.week);
+  $('hBreak').textContent=U('autorun')
+    ?'8h dirección'+(founderCap()>0?' + '+(founderCap()*.5).toFixed(1)+'h operando vos':'')+' + '+mgmtHours().toFixed(1)+'h gestión + '+coordHours().toFixed(1)+'h coordinación + '+clientOverhead().toFixed(1)+'h clientes + '+calcSup().toFixed(1)+'h supervisión'+(docsWipHours()?' + '+docsWipHours()+'h documentando':'')+(S.clickHours>.5?' + '+S.clickHours.toFixed(1)+'h incendios':'')
+    :'Cada tarea a mano te hunde un poco más. Así no escala.';
   $('streak').textContent=S.streak+'/3';
 
-  // cold open
+  // burnout mark
+  $('deathTag').textContent=S.burnCap+'h · burnout'+(S.kidArrived?' 👶':'');
+  $('deathMark').style.left=(S.burnCap/80*100)+'%';
+
+  // manual button
   if(!U('autorun')){
-    $('bigBtn').innerHTML=TASK_COPY[taskIdx][0]+'<span class="plus">+'+fmt(TASK_COPY[taskIdx][1])+' · −'+(S.prompts>0&&S.tokens>=S.prompts*PROMPT.perClickTok?S.clickYield:1)+' tarea'+((S.prompts>0&&S.tokens>=S.prompts*PROMPT.perClickTok&&S.clickYield>1)?'s':'')+'</span>';
-    const pn=$('pendNum'); pn.textContent=Math.round(S.pending); pn.className=S.pending>=10?'hot':'';
-    $('clickHint').textContent=S.prompts>0?'Con Prompt rendís más por click. Pero seguís clickeando vos.':'Sos vos contra la bandeja. Cada tarea la hacés a mano.';
-  }
-  if(U('prompt')){
-    $('buildPrompt').disabled=S.cash<PROMPT.cost;
-    $('promptCount').textContent=S.prompts>0?S.prompts+'× Prompt · '+S.clickYield+'/click':'';
-    $('promptInfo').textContent=S.prompts>0?('Consume '+S.prompts*PROMPT.perClickTok+' tok por click'):('Nivel 1. Te hace más rápido, no te reemplaza.');
+    $('bigBtn').firstChild.textContent=TASKS_F0[taskIdx][0];
+    $('bigPlus').textContent='+'+fmt(TASKS_F0[taskIdx][1])+' · −1 tarea · +0,45h';
+    $('pendRow').hidden=false;
+    const pn=$('pendNum');pn.textContent=Math.round(S.pending);pn.className=S.pending>=10?'hot':'';
+    $('clickHint').textContent='Sos vos contra la bandeja. Cada tarea la hacés a mano.';
+    $('bigBtn').classList.remove('mini');
+  } else {
+    const fatigue=Math.pow(.5,Math.floor(S.weekClicks/15));
+    $('bigBtn').firstChild.textContent=TASKS_AUTO[taskIdx%TASKS_AUTO.length][0];
+    $('bigPlus').textContent='+'+fmt((P('prompting')?120:50)*fatigue)+' · +0,5h tuyas'+(fatigue<1?' · cansado':'');
+    $('pendRow').hidden=true;
+    $('clickHint').textContent='Meter mano siempre se puede. Pero cada click es tu tiempo.';
+    $('bigBtn').classList.add('mini');
   }
 
-  // tokens (tokBal lo pinta el loop)
-  if(U('autorun')){ $('tokBurnRow').hidden=false; $('tokBurn').textContent=tokNeed()+' tok/sem'; }
-  $('p500').textContent=fmt(450*S.tokenMult); $('p2000').textContent=fmt(1600*S.tokenMult);
-  $('buy500').disabled=S.cash<450*S.tokenMult; $('buy2000').disabled=S.cash<1600*S.tokenMult;
-  if(U('ads')){
-    const w=$('autoTokWrap'); w.hidden=false;
-    if(S.autoBought) w.innerHTML='<button class="btn small'+(S.autoTokens?' primary':'')+'" onclick="toggleAutoTokens()">Auto-compra de tokens: '+(S.autoTokens?'ON':'OFF')+'</button>';
-    else w.innerHTML='<button class="btn small primary" onclick="buyAutoTokens()"'+(S.cash<3000?' disabled':'')+'>🔧 Implementar auto-compra · '+fmt(3000)+'</button>';
+  // team
+  if(U('team')){
+    $('tCount').textContent='('+(totalEmps()+S.mgr)+')';
+    let rows='';
+    for(const A of AREAS){
+      const e=S.emps[A.id];
+      if(e.jr||e.sr)rows+=`<div class="trow"><span class="lbl">${A.name}</span>`+
+        (e.jr?`<span class="chip human">👤 Junior ×${e.jr} <span class="x" onclick="fireEmp('jr','${A.id}')">✕</span></span>`:'')+
+        (e.sr?`<span class="chip human">⭐ Senior ×${e.sr} <span class="x" onclick="fireEmp('sr','${A.id}')">✕</span></span>`:'')+'</div>';
+    }
+    if(S.mgr)rows+=`<div class="trow"><span class="lbl">Estructura</span><span class="chip human">👔 Manager ×${S.mgr} <span class="x" onclick="fireEmp('mgr')">✕</span></span></div>`;
+    if(S.trained)rows+=`<div class="trow"><span class="lbl">IA-Ops</span><span class="chip">🎓 Capacitados ×${S.trained}</span></div>`;
+    if(totalEmps()>=5){
+      const m=Math.round(S.moral), mi=m>=70?'😊':m>=45?'😐':'😟';
+      rows+=`<div class="trow"><span class="lbl">Moral ${mi} ${m}%</span>`+
+        Object.entries(WORKMODES).map(([k,wm])=>`<button class="btn tiny ${S.workMode===k?'primary':''}" onclick="S.workMode='${k}';logMsg('Régimen laboral: ${wm.n}.','');render()">${wm.n}</button>`).join('')+`</div>`+
+        `<div class="small muted" style="margin-top:3px">${S.workMode==='std'?'Capacidad 100% · la gente rota normal':S.workMode==='d4'?'Capacidad 90% · renuncias ×0,5 · moral sube':'Capacidad 80% · renuncias ×0,3 · moral vuela'}</div>`;
+    }
+    $('teamRows').innerHTML=rows||'<div class="small muted mt8">Nadie todavía. Todo lo hacés vos.</div>';
+    $('pipeRow').innerHTML=S.pipeline.length?('🔎 En búsqueda: '+S.pipeline.map(p=>EMP[p.type].n+' ('+p.left+' sem)').join(' · ')):'';
+    let hr='';
+    for(const A of AREAS)hr+=`<button class="btn small" onclick="hire('jr','${A.id}')" ${S.cash<EMP.jr.rec||S.pipeline.length>=2?'disabled':''}>+Junior ${A.name.slice(0,3)} · ${fmt(EMP.jr.rec)}</button>`;
+    hr+=`<button class="btn small" onclick="hire('sr','o')" ${S.cash<EMP.sr.rec||S.pipeline.length>=2?'disabled':''}>+Senior Ope · ${fmt(EMP.sr.rec)}</button>`;
+    hr+=`<button class="btn small" onclick="hire('sr','g')" ${S.cash<EMP.sr.rec||S.pipeline.length>=2?'disabled':''}>+Senior Gro · ${fmt(EMP.sr.rec)}</button>`;
+    if(totalEmps()>=8)hr+=`<button class="btn small" onclick="hire('mgr')" ${S.cash<EMP.mgr.rec||S.pipeline.length>=2?'disabled':''}>+Manager · ${fmt(EMP.mgr.rec)}</button>`;
+    $('hireRow').innerHTML=hr;
+    $('trainRow').hidden=!P('aiops');
+    if(P('aiops'))$('trainRow').innerHTML=`<button class="btn small primary" onclick="trainOne()" ${S.trained>=totalEmps()||S.cash<1200?'disabled':''}>🎓 Capacitar 1 en IA-Ops · $1.200</button><span class="small muted">${S.trained}/${totalEmps()} capacitados</span>`;
   }
 
   // areas
-  if(U('assistant')){
+  if(U('areas')){
     const st=areaStats();
-    let avail=[2]; if(U('workflow'))avail.push(3); if(U('agent'))avail.push(4); if(U('orch'))avail.push(5);
-    for(const a of visAreas()){
-      const x=st[a.id]; if(!x||!$('dem-'+a.id))continue;
-      const ratio=x.dem>0?Math.min(1,x.cap/x.dem):1;
-      $('dem-'+a.id).textContent='dem '+x.dem.toFixed(1);
-      $('cap-'+a.id).textContent='cap '+x.cap.toFixed(1)+(x.you>0?' (+'+x.you.toFixed(1)+' tuyas)':'');
-      const bar=$('bar-'+a.id); bar.style.width=(ratio*100)+'%';
-      bar.style.background=ratio>=1?'var(--good)':ratio>=0.8?'var(--accent)':'var(--bad)';
-      const rEl=$('ratio-'+a.id); rEl.textContent=ratio>=1?'OK':Math.round(ratio*100)+'%'; rEl.style.color=ratio>=1?'var(--good)':'var(--bad)';
+    for(const A of AREAS){const a=A.id, x=st[a];
+      if(!$('cov-'+a))continue;
+      const ratio=x.dem>0?x.cap/x.dem:1, pct=Math.min(999,Math.round(ratio*100));
+      const el=$('cov-'+a); el.textContent=pct+'%';
+      el.style.color=ratio>=1?'var(--good)':ratio>=.8?'var(--warn)':'var(--bad)';
+      $('bar-'+a).style.width=Math.min(100,ratio*100)+'%';
+      $('bar-'+a).style.background=ratio>=1?'var(--good)':ratio>=.8?'var(--accent)':'var(--bad)';
+      $('dem-'+a).textContent='demanda '+x.dem.toFixed(0);
+      $('cap-'+a).textContent='capacidad '+x.cap.toFixed(0)+(x.ai>0?' · '+x.ai.toFixed(0)+' IA':'')+(x.you>0.5?' · '+x.you.toFixed(0)+' tuyas':'');
       const def=Math.max(0,x.dem-x.cap);
-      $('area-'+a.id).classList.toggle('deficit',def>0.5);
-      $('falta-'+a.id).textContent=def>0.5?('⚠ Te faltan '+Math.round(def)+' de capacidad acá'):'';
-      const emps=S.employees.filter(e=>e.area===a.id).map(e=>`<span class="chip human">👤 ${e.name}</span>`).join('');
-      const ws=S.workers.filter(w=>w.area===a.id).map(w=>`<span class="chip">🤖 N${w.lv} ${LV[w.lv].name} <span class="x" onclick="scrapWorker('${w.id}')" title="Baja">✕</span></span>`).join('');
-      $('chips-'+a.id).innerHTML=emps+ws||'<span class="small" style="color:var(--ink3)">Vacío. Acá se acumulan tareas.</span>';
-      const sel=$('sel-'+a.id); const L=LV[+sel.value];
-      $('binfo-'+a.id).textContent=L?(fmt(L.cost)+' · '+L.tok+' tok/sem · cap '+L.cap+' · '+L.note):'';
-      $('build-'+a.id).disabled=!L||S.cash<L.cost;
+      $('area-'+a).classList.toggle('deficit',def>.5);
+      $('falta-'+a).textContent=def>.5?'⚠ Te faltan '+Math.round(def)+' de capacidad':'';
+      // grouped chips
+      let chips='';
+      const eA=S.emps[a]; const hum=eA.jr+eA.sr;
+      if(hum)chips+=`<span class="chip human">👤 ×${hum}</span>`;
+      for(const lv of [2,3,4,5]){
+        const ws=S.workers.filter(w=>w.area===a&&w.lv===lv);
+        if(!ws.length)continue;
+        const legacy=ws.filter(w=>w.legacy).length;
+        const untr=lv===4?ws.filter(w=>!w.trained).length:0;
+        chips+=`<span class="chip${legacy?' warn':''}">${LV[lv].icon} N${lv} ×${ws.length}${legacy?' ⚠'+legacy+' viejos':''}${untr?' 🐣'+untr+' crudos':''} <span class="x" onclick="scrapWorker('${a}',${lv})">✕</span></span>`;
+        if(untr&&lv===4){const w=ws.find(x=>!x.trained);chips+=`<button class="btn tiny" onclick="trainAgent('${w.id}')" ${S.cash<2500?'disabled':''}>🎓 entrenar $2.500</button>`;}
+      }
+      $('chips-'+a).innerHTML=chips||'<span class="small" style="color:var(--ink3)">Solo demanda. Nadie produce acá.</span>';
+      // build
+      const av=availLevels(a);
+      const brow=$('brow-'+a);
+      if(av.length){
+        brow.style.display='flex';
+        const sel=$('sel-'+a), cur=sel.dataset.opts||'';
+        const optsKey=av.join(',');
+        if(cur!==optsKey){sel.dataset.opts=optsKey;
+          sel.innerHTML=av.map(lv=>{let c=LV[lv].cost;if(S.stack==='codex')c=Math.round(c*.85);return `<option value="${lv}">${LV[lv].icon} N${lv} ${LV[lv].name} · ${fmt(c)}</option>`;}).join('');
+          const want=av.includes(S.lastLv[a])?S.lastLv[a]:av[av.length-1];
+          sel.value=String(want);
+          if(av[av.length-1]!==S.lastLv[a])logMsg('🔓 Podés construir <b>'+LV[av[av.length-1]].name+'</b> en '+A.name+'.','accent');
+        }
+        const L=LV[+sel.value];
+        let cost=L.cost;if(S.stack==='codex')cost=Math.round(cost*.85);
+        const maxed=(+sel.value===2||+sel.value===3)&&cntLv(+sel.value,a)>=L.max;
+        $('binfo-'+a).textContent=L.note+' · '+L.tok+' tok/sem'+(maxed?' · MÁX en esta área':'');
+        $('build-'+a).disabled=S.cash<cost||maxed;
+      } else {
+        brow.style.display='none';
+        $('binfo-'+a).textContent=S.docs[a]?'Área documentada. Falta desbloquear niveles (Proyectos).':(S.docsWip[a]?'Documentando… '+S.docsWip[a]+' sem':'Sin documentar: la IA no tiene contexto acá.');
+      }
     }
-    // línea de estado: qué falta, en rojo
-    const sl=$('statusLine'); sl.hidden=!U('autorun');
-    if(U('autorun')){
-      const reds=visAreas().map(a=>({n:a.name,d:st[a.id].dem-st[a.id].cap})).filter(o=>o.d>0.5);
-      const risk=S.clients.filter(c=>c.sat<50).length;
-      if(reds.length){ sl.className='bad'; sl.innerHTML='🔴 En rojo: '+reds.map(o=>o.n+' (−'+Math.round(o.d)+')').join(', ')+(risk?' · '+risk+' cliente'+(risk>1?'s':'')+' en riesgo de irse':''); }
-      else { sl.className='ok'; sl.innerHTML='🟢 Todo cubierto. Ahora bajá tus horas hacia las 12.'; }
+    // status line
+    const sl=$('statusLine');
+    const reds=AREAS.map(A=>({n:A.name,d:st[A.id].dem-st[A.id].cap})).filter(o=>o.d>.5);
+    const risk=S.clients.filter(c=>c.sat<50).length;
+    const recvT=S.receivables.reduce((s,r)=>s+r.amt,0);
+    if(reds.length){sl.className='bad';sl.innerHTML='🔴 En rojo: '+reds.map(o=>o.n+' (−'+Math.round(o.d)+')').join(', ')+(risk?' · '+risk+' cliente'+(risk>1?'s':'')+' en riesgo':'')+(recvT>500?' · '+fmt(recvT)+' por cobrar':'');}
+    else{sl.className='ok';sl.innerHTML='🟢 Todo cubierto.'+(recvT>500?' Cobrando atrasados ('+fmt(recvT)+').':' Ahora bajá tus horas.');}
+  }
+
+  // projects
+  if(U('projects')){
+    let html='';
+    for(const p of PROJECTS){
+      if(P(p.id)&&p.id!=='doc')continue;
+      if(!projVisible(p))continue;
+      if(p.id==='doc'){
+        for(const A of p.multi){const a=A.id;
+          if(S.docs[a])continue;
+          const wip=S.docsWip[a], ok=p.reqA(a);
+          html+=`<div class="proj ${wip?'ok':(ok?'ok':'locked')}"><div class="pn">${p.ic} Documentar ${A.name}</div><div class="pd">${p.d}</div>`+
+            (wip?`<div class="pr" style="color:var(--good)">En curso: ${wip} sem</div>`:
+              (ok?`<div class="acts2"><button class="btn small primary" onclick="buyProject('doc','${a}')" ${S.cash<p.c?'disabled':''}>Documentar · ${fmt(p.c)}</button><button class="btn small" onclick="docConsult('${a}')" ${S.cash<7000?'disabled':''}>Consultor · $7.000</button></div>`
+                :`<div class="pr">🔒 Falta: ${p.reqTxtA(a)}</div>`))+`</div>`;
+        }
+        continue;
+      }
+      const ok=p.req();
+      html+=`<div class="proj ${ok?'ok':'locked'}"><div class="pn">${p.ic} ${p.n}${p.sub?' <span class="small muted">+'+fmt(p.sub)+'/sem</span>':''}</div><div class="pd">${p.d}</div>`+
+        (ok?`<div class="acts2"><button class="btn small primary" onclick="buyProject('${p.id}')" ${S.cash<p.c?'disabled':''}>Comprar · ${fmt(p.c)}</button></div>`
+          :`<div class="pr">🔒 Falta: ${p.reqTxt()}</div>`)+`</div>`;
     }
+    $('projBody').innerHTML=html||'<div class="small muted mt8">Nada nuevo por ahora. El mundo va a seguir cambiando…</div>';
   }
 
   // clients
   if(U('clients')){
     $('cCount').textContent='('+S.clients.length+')';
-    $('cList').innerHTML=S.clients.map(c=>{
+    const sorted=[...S.clients].sort((x,y)=>S.sortMode==='fee'?y.fee-x.fee:x.sat-y.sat);
+    $('cList').innerHTML=sorted.map(c=>{
       const col=c.sat>=65?'var(--good)':c.sat>=40?'var(--warn)':'var(--bad)';
-      return `<div class="cl"><span class="nm">${c.name}</span><span class="fee">${fmt(c.fee)}</span><span class="sat" title="Satisfacción ${Math.round(c.sat)}%"><i style="width:${c.sat}%;background:${col}"></i></span></div>`;
+      return `<div class="cl"><span class="nm">${c.name}</span><span class="fee">${fmt(c.fee)}</span><span class="sat" title="${Math.round(c.sat)}%"><i style="width:${c.sat}%;background:${col}"></i></span></div>`;
     }).join('')||'<div class="small" style="color:var(--ink3)">Sin clientes.</div>';
   }
 
-  // team
-  if(U('humans')){
-    $('teamChips').innerHTML=S.employees.map(e=>`<span class="chip human">👤 ${e.name} · ${AREAS.find(a=>a.id===e.area).name} · $700/sem <span class="x" onclick="fireEmp('${e.id}')" title="Despedir">✕</span></span>`).join('')||'<span class="small" style="color:var(--ink3)">Sin equipo humano.</span>';
-  }
-
   // ads
-  if(U('ads')) for(const ch of CHANNELS){
-    $('adv-'+ch.id).textContent=fmt(S.ads[ch.id])+'/sem';
-    $('adn-'+ch.id).textContent='CAC ~'+fmt(ch.cac*S.cacMult[ch.id])+' · fee '+fmt(ch.feeMin)+'–'+fmt(ch.feeMax)+(ch.tag?' · '+ch.tag:'');
+  if(U('ads')){
+    if(!$('ad-meta'))buildAds();
+    const st2=U('areas')?areaStats():null;
+    const covG=st2&&st2.g.dem>0?Math.min(1.5,st2.g.cap/st2.g.dem):1;
+    for(const ch of CHANNELS){
+      $('adv-'+ch.id).textContent=fmt(S.ads[ch.id])+'/sem';
+      const c=effCAC(ch,covG), base=ch.cac;
+      const dir=S.cacW[ch.id]>1.05?'<span class="up">▲</span>':S.cacW[ch.id]<0.95?'<span class="dn">▼</span>':'·';
+      $('adn-'+ch.id).innerHTML='CAC ~'+fmt(c)+' '+dir+(ch.tag?' · '+ch.tag:'')+(covG<1?' · <span class="up">Growth en rojo encarece</span>':'');
+    }
+    const org=$('organicRow');
+    if(st2&&st2.g.dem>0&&st2.g.cap/st2.g.dem>1.1){org.hidden=false;org.innerHTML='🌱 A Growth le sobra capacidad → contenido orgánico'+(N('spaces')?' ×2 (Spaces)':'')+': clientes gratis cayendo.';}
+    else org.hidden=true;
   }
 
-  // op
-  $('opVal').textContent=S.opHours+'h';
+  // tokens
+  if(U('tokens')){
+    const dir=S.tokPrice>0.99?'<span class="up">▲</span>':S.tokPrice<0.81?'<span class="dn">▼</span>':'·';
+    $('tokPrice').innerHTML='$'+S.tokPrice.toFixed(2)+'/tok '+dir+(S.tokPrice<0.75?' <span class="dn">barato</span>':S.tokPrice>1.1?' <span class="up">caro</span>':'');
+    let burn=tokNeed();if(S.stack==='cc')burn=Math.round(burn*.9);
+    if(burn>0){$('tokBurnRow').hidden=false;$('tokBurn').textContent=burn+'/sem';}
+    $('buy500').textContent='+500 · '+fmt(500*S.tokPrice);
+    $('buy2000').textContent='+2.000 · '+fmt(2000*S.tokPrice);
+    $('buy500').disabled=S.cash<500*S.tokPrice||S.tokens>=tokCap();
+    $('buy2000').disabled=S.cash<2000*S.tokPrice||S.tokens>=tokCap();
+    const w=$('autoTokWrap');
+    if(P('autotok')){w.hidden=false;w.innerHTML=`<button class="btn small ${S.autoTokens?'primary':''}" onclick="toggleAutoTokens()">Auto-compra: ${S.autoTokens?'ON':'OFF'}</button>`;}
+  }
 
-  // next hint
+  // migración
+  if(S.migration){
+    const left=S.workers.filter(x=>x.legacy).length;
+    $('migHint').innerHTML='Salió <b>'+S.migration.why+'</b>: quedan <b>'+left+'</b> workers en versión vieja (rinden 70%).';
+    $('migConsult').textContent='Consultora: migra todo · '+fmt(left*800);
+    $('migConsult').disabled=S.cash<left*800;
+  }
+
+  // header recv
+  const recvT=S.receivables.reduce((s,r)=>s+r.amt,0);
+  $('hsRecv').hidden=recvT<500;
+  $('stRecv').textContent=fmt(recvT);
+
   $('nextHint').textContent=nextTeaser();
 }
 function nextTeaser(){
-  if(!U('prompt')) return '??? · hacé unas cuantas tareas y algo se va a desbloquear';
-  if(!U('assistant')) return '??? · seguí, hay una forma de que esto lo haga otro';
-  if(!U('autorun')) return '??? · construí tu primer Asistente para soltar el mouse';
-  if(!U('areas3')) return '??? · construí un segundo worker y la cosa se divide en áreas';
-  if(!U('workflow')) return '??? · tené 2 Asistentes y facturá $6k para el Workflow (N3)';
-  if(!U('agent')) return '??? · construí un Workflow y llegá a $9k para el Agente (N4)';
-  if(!U('orch')) return '??? · construí un Agente y llegá a $13k para el Orquestador (N5)';
-  return '';
+  if(!U('team'))return '??? · seguí haciendo tareas, algo va a pasar';
+  if(!U('autorun'))return '??? · contratá a alguien para que el tiempo corra solo';
+  if(!P('prompting'))return N('chatgpt')?'??? · hay un proyecto esperándote: empezá por lo básico':'';
+  if(!S.docs.o&&!S.docsWip.o)return '??? · documentá lo que tu gente ya hace (Proyectos)';
+  if(!N('gpts'))return '??? · la historia avanza… algo se viene en el mundo IA';
+  if(!cntLv(2))return '??? · construí tu primer Asistente en un área documentada';
+  if(!P('wf'))return '??? · creced: con 2 Asistentes y $8k se abre el próximo nivel';
+  if(!P('ag'))return '??? · 2 Workflows y $18k… y esperá las noticias de 2025';
+  if(!P('orch'))return '??? · entrená 2 Agentes y llegá a $25k';
+  if(!S.freedomWon)return '??? · $15k/sem con ≤12h tuyas, 3 semanas';
+  return '??? · juntá $250k y contratá al CEO';
 }
 
-// ============================================================ LOG
+// ════════════════════════════════ LOG
 function logMsg(msg,cls){
-  const el=document.createElement('div'); if(cls)el.className=cls;
-  el.innerHTML='<span class="wk">'+(U('autorun')?'S'+S.week:'·')+'</span>'+msg;
+  const el=document.createElement('div');if(cls)el.className=cls;
+  el.innerHTML='<span class="wk">'+(S&&U('autorun')?'S'+S.week:'·')+'</span>'+msg;
   $('log').prepend(el);
-  while($('log').children.length>40) $('log').lastChild.remove();
+  while($('log').children.length>45)$('log').lastChild.remove();
 }
 
-// ============================================================ LIFECYCLE
-// Reloj continuo + pintado animado (un solo loop requestAnimationFrame)
-let weekAccum=0, lastFrame=null, disp={cash:0,rev:0,tok:0,hours:0};
-function resetDisplay(){ disp={cash:S.cash, rev:revNow(), tok:S.tokens, hours:calcHours()}; weekAccum=0; lastFrame=null; }
+// ════════════════════════════════ SAVE / LOAD
+function save(){ try{ localStorage.setItem('dom_save',JSON.stringify(S)); }catch(e){} }
+function load(){
+  try{ const raw=localStorage.getItem('dom_save'); if(!raw)return null;
+    const s=JSON.parse(raw); if(!s||!s.week||s.over)return null; return s;
+  }catch(e){return null;}
+}
+
+// ════════════════════════════════ LIFECYCLE (reloj continuo rAF)
+let weekAccum=0,lastFrame=null,disp={cash:0,tok:0,hours:0};
+function resetDisplay(){disp={cash:S.cash,tok:S.tokens,hours:calcHours()};weekAccum=0;lastFrame=null;}
 function loop(ts){
   requestAnimationFrame(loop);
-  const dt=(lastFrame==null)?16:Math.min(120,ts-lastFrame); lastFrame=ts;
-  if(!S) return;
-  const interval=4200/S.speed;
-  if(U('autorun') && !S.paused && !evtOpen && !S.over){
-    weekAccum+=dt; let g=0;
-    while(weekAccum>=interval && !evtOpen && !S.over && g++<3){ weekAccum-=interval; tick(); }
+  const dt=lastFrame==null?16:Math.min(120,ts-lastFrame);lastFrame=ts;
+  if(!S)return;
+  const interval=6000/S.speed;
+  if(U('autorun')&&!S.paused&&!evtOpen&&!S.over){
+    weekAccum+=dt;let g=0;
+    while(weekAccum>=interval&&!evtOpen&&!S.over&&g++<3){weekAccum-=interval;tick();}
   }
-  paintLive(interval, dt);
+  paintLive(interval,dt);
 }
-function paintLive(interval, dt){
+function paintLive(interval,dt){
   const p=(U('autorun')&&!S.over)?Math.min(1,weekAccum/interval):0;
-  const sal=S.employees.reduce((s,e)=>s+e.salary,0);
-  const ad=S.ads.meta+S.ads.google+S.ads.tiktok;
-  const net=revNow()-sal-ad, need=tokNeed();
-  // caja y tokens: acumulación continua durante la semana. rev y horas: easing suave.
+  const sal=Object.values(S.emps).reduce((s,e)=>s+e.jr*EMP.jr.sal+e.sr*EMP.sr.sal,0)+S.mgr*EMP.mgr.sal;
+  const subs=(P('crm')?150:0)+(P('mkt')?120:0)+(P('sales')?120:0);
+  const net=revNow()-sal-subs-(S.ads.meta+S.ads.google+S.ads.tiktok);
+  let burn=tokNeed();if(S.stack==='cc')burn=Math.round(burn*.9);
   disp.cash=U('autorun')?S.cash+net*p:S.cash;
-  disp.tok =U('autorun')?Math.max(0,S.tokens-need*p):S.tokens;
+  disp.tok=U('autorun')?Math.max(0,S.tokens-burn*p):S.tokens;
   const k=Math.min(1,dt/130);
-  disp.rev  +=(revNow()-disp.rev)*k;
   disp.hours+=(calcHours()-disp.hours)*k;
-  // pintar
-  $('stCash').textContent=fmt(disp.cash); $('stCash').className='v'+(S.cash<3000?' neg':'');
-  $('stRev').textContent=fmt(disp.rev);
+  $('stCash').textContent=fmt(disp.cash);$('stCash').className='v'+(S.cash<3000?' neg':'');
   $('stTok').textContent=Math.round(disp.tok);
-  const effLow=need>0 && S.tokens/need<1;
-  $('tokBal').textContent=Math.round(disp.tok)+(effLow?' ⚠️':'');
   const hh=disp.hours;
   $('hNum').textContent=hh.toFixed(1);
   $('hFill').style.width=Math.min(100,hh/80*100)+'%';
-  $('hFill').style.background=hh<=12?'var(--good)':hh<=35?'var(--accent)':hh<=60?'#D2691E':'var(--bad)';
-  if(U('autorun')) $('weekbar').firstElementChild.style.width=(p*100)+'%';
+  $('hFill').style.background=hh<=12?'var(--good)':hh<=35?'var(--accent)':hh<=S.burnCap-15?'#D2691E':'var(--bad)';
+  if(U('autorun'))$('weekbar').firstElementChild.style.width=(p*100)+'%';
 }
-let pressureTimer=null;
-function startPressure(){ clearInterval(pressureTimer); pressureTimer=setInterval(manualPressure,2600); }
-
-function resetUI(){
-  ['pTok','pAreas','pAds','pClients','pTeam','pOp','pLog'].forEach(id=>$(id).classList.add('hidden'));
-  $('pClick').classList.remove('hidden');
-  ['hsWeek','hsCash','hsRev','hsTok','hctrl','goalLine','promptBox','tokBurnRow','weekbar','statusLine','autoTokWrap'].forEach(id=>$(id).hidden=true);
-  $('log').innerHTML=''; $('areasBody').innerHTML=''; $('adsBody').innerHTML='';
-  $('btnPause').textContent='⏸'; $('btnSpeed').textContent='×1';
+function startPressure(){clearInterval(pressureTimer);pressureTimer=setInterval(manualPressure,2600);}
+function startGame(fromSave){
+  clearInterval(pressureTimer);modalQueue=[];evtOpen=false;
+  $('overlay').style.display='none';
+  S=fromSave||freshState();taskIdx=0;
+  $('log').innerHTML='';$('areasBody').innerHTML='';$('adsBody').innerHTML='';
+  if(U('areas'))buildAreas();
+  if(U('ads'))buildAds();
+  syncPanels();resetDisplay();render();
+  if(!U('autorun'))startPressure();
+  logMsg(fromSave?'Partida recuperada. Seguimos en '+dateOf(S.week)+'.':'28 de noviembre de 2022. Sos vos, 2 clientes y una bandeja que no para. En dos días sale algo llamado ChatGPT.','');
+  if(!fromSave){S.news.chatgpt=false;} // se anuncia en el primer tick manualito:
+  if(!fromSave){ // mostrar la noticia inaugural sin esperar autorun
+    setTimeout(()=>{ if(!S.news.chatgpt){S.news.chatgpt=true;$('newsTicker').hidden=false;$('newsTicker').innerHTML='🗞️ '+TIMELINE[0].t;
+      logMsg('🗞️ '+TIMELINE[0].t,'news');} },2200);
+  }
 }
-function startGame(){
-  clearInterval(pressureTimer); modalQueue=[];
-  evtOpen=false; $('overlay').style.display='none';
-  S=freshState(); taskIdx=0;
-  resetUI(); resetDisplay();
-  render(); startPressure();
-  logMsg('Arrancás solo, con 2 clientes y la bandeja llena. Suerte.','');
-}
-function restart(){ startGame(); }
+function restart(){localStorage.removeItem('dom_save');startGame();}
 
-$('btnPause').onclick=()=>{ S.paused=!S.paused; $('btnPause').textContent=S.paused?'▶':'⏸'; };
-$('btnSpeed').onclick=()=>{ S.speed=S.speed===1?2:1; $('btnSpeed').textContent='×'+S.speed; };
+$('btnPause').onclick=()=>{S.paused=!S.paused;$('btnPause').textContent=S.paused?'▶':'⏸';};
+$('btnSpeed').onclick=()=>{S.speed=S.speed===1?2:1;$('btnSpeed').textContent='×'+S.speed;};
 
-// arranca el loop continuo + intro
-requestAnimationFrame(loop);
-$('overlay').style.display='flex';
+// intro
+(function(){
+  const sv=load();
+  $('modal').innerHTML='<h2>Delegá o Morí</h2>'+
+    '<p>Noviembre 2022. Tenés una agencia chiquita y estás metido en <b>todo</b>. En dos días sale ChatGPT y empieza la era de la IA — la vas a vivir <b>fecha por fecha, con las noticias reales</b>, hasta hoy.</p>'+
+    '<p><b>El objetivo no es facturar más. Es trabajar menos.</b> Contratá gente, documentá procesos, capacitá, delegá en IA — y retirate.</p>'+
+    '<p>Perdés por <b style="color:var(--bad)">burnout</b> o por <b style="color:var(--bad)">quiebra</b>.</p>'+
+    '<div class="acts">'+(sv?'<button class="btn" onclick="startGame(load());evtOpen=false;$(\'overlay\').style.display=\'none\'">Continuar partida</button>':'')+
+    '<button class="btn primary" onclick="restart();evtOpen=false;$(\'overlay\').style.display=\'none\'">'+(sv?'Nueva partida':'Empezar a laburar')+'</button></div>';
+  $('overlay').style.display='flex';
+  requestAnimationFrame(loop);
+})();
 </script>
 </body>
 </html>
