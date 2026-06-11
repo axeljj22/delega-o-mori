@@ -1273,7 +1273,7 @@ function showEvent(title,body,actions){
     actions.map((a,i)=>'<button class="btn '+(i===0?'primary':'')+'" onclick="evtAct('+i+')">'+a.t+'</button>').join('')+'</div>';
   window._acts=actions; $('overlay').style.display='flex';
 }
-function evtAct(i){window._acts[i].f();evtOpen=false;$('overlay').style.display='none';checkUnlocks();render();pump();}
+function evtAct(i){evtOpen=false;$('overlay').style.display='none';window._acts[i].f();checkUnlocks();render();pump();}
 function pump(){if(evtOpen||!modalQueue.length)return;const m=modalQueue.shift();showEvent(m[0],m[1],m[2]);}
 
 // ════════════════════════════════ UI

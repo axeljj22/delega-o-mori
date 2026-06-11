@@ -1,0 +1,23 @@
+{
+  "name": "juego-delega-o-mori",
+  "version": "1.0.0",
+  "description": "Un juego incremental tipo *Universal Paperclips* sobre delegar tu negocio en IA.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/axeljj22/delega-o-mori.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/axeljj22/delega-o-mori/issues"
+  },
+  "homepage": "https://github.com/axeljj22/delega-o-mori#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
+  }
+}
