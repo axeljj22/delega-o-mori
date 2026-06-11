@@ -208,6 +208,7 @@
       <div class="mark death" id="deathMark" style="left:100%"><span class="t" id="deathTag">80h · burnout</span></div>
     </div>
     <div class="breakdown" id="hBreak"></div>
+    <div id="hourHint" style="font-size:12.5px;color:var(--accent);margin-top:5px;min-height:14px"></div>
     <div class="goalline" id="goalLine" hidden>Meta 1: <b>$15.000/sem con ≤12h</b> ×3 semanas (racha <b id="streak" style="color:var(--ink)">0/3</b>) · Final: <span style="color:var(--ink)">retirate</span> con caja para no volver.</div>
     <div id="statusLine" hidden></div>
     <div id="newsTicker" hidden></div>
@@ -245,9 +246,24 @@
 
     <!-- AGENCIA / ÁREAS -->
     <div class="panel hidden" id="pAreas">
-      <h2>🏗 Tu agencia</h2>
+      <h2>🏗 Tu agencia <span class="muted small" id="aCount"></span></h2>
       <div class="hint">La IA potencia a tu gente. Recién los Agentes ejecutan solos.</div>
       <div id="areasBody"></div>
+    </div>
+
+    <!-- TOKENS (movido: justo antes de Proyectos) -->
+    <div class="panel hidden" id="pTok">
+      <h2>⚡ Tokens <span class="muted small" id="tokProvNote"></span></h2>
+      <div class="hint">Tu IA corre con tokens. Comprá barato, stockeá buffer.</div>
+      <div class="meter"><span>Precio actual</span><span class="num2" id="tokPrice">$0,90/tok</span></div>
+      <div class="meter"><span>Stock</span><span class="num2" id="tokBal">0 / 6.000 máx</span></div>
+      <div class="meter" id="tokBurnRow" hidden><span>Consumo/sem</span><span id="tokBurn">0</span></div>
+      <div class="small" id="tokBlockReason" style="color:var(--bad);margin-top:3px"></div>
+      <div class="row mt8" style="gap:8px">
+        <button class="btn small" id="buy500" onclick="buyTokens(500)"></button>
+        <button class="btn small" id="buy2000" onclick="buyTokens(2000)"></button>
+      </div>
+      <div id="autoTokWrap" class="mt8" hidden></div>
     </div>
 
     <!-- PROYECTOS -->
@@ -269,20 +285,6 @@
     <div class="panel hidden" id="pClients">
       <h2>🧑 Clientes <span class="muted small" id="cCount"></span><span class="hspace"></span><button class="btn tiny" id="sortBtn" onclick="toggleSort()">orden: fee</button></h2>
       <div class="clist" id="cList"></div>
-    </div>
-
-    <!-- TOKENS -->
-    <div class="panel hidden" id="pTok">
-      <h2>⚡ Tokens</h2>
-      <div class="hint">Tu IA corre con tokens. El precio se mueve: stockeá cuando está barato.</div>
-      <div class="meter"><span>Precio</span><span class="num2" id="tokPrice">$0,90/tok</span></div>
-      <div class="meter"><span>Balance</span><span class="num2" id="tokBal">0</span></div>
-      <div class="meter" id="tokBurnRow" hidden><span>Consumo</span><span id="tokBurn">0/sem</span></div>
-      <div class="row mt8" style="gap:8px">
-        <button class="btn small" id="buy500" onclick="buyTokens(500)"></button>
-        <button class="btn small" id="buy2000" onclick="buyTokens(2000)"></button>
-      </div>
-      <div id="autoTokWrap" class="mt8" hidden></div>
     </div>
 
     <!-- LOG -->
@@ -307,9 +309,13 @@ const AREAS=[
   {id:'g',name:'Growth',desc:'Contenido, leads, adquisición'},
   {id:'a',name:'Admin',desc:'Facturación, cobranzas, contratos'},
 ];
-const EMP={ jr:{n:'Junior',rec:400,delay:1,sal:700,cap:8,quit:.03},
-            sr:{n:'Senior',rec:1500,delay:2,sal:1100,cap:13,quit:.01},
-            mgr:{n:'Manager',rec:2000,delay:3,sal:1500,cap:0,quit:.01} };
+const EMP={
+  jr: {n:'Junior',      rec:400,  delay:1, sal:700,  cap:8,  quit:.03},
+  sr: {n:'Senior',      rec:1500, delay:2, sal:1100, cap:13, quit:.01},
+  mgr:{n:'Manager',     rec:2000, delay:3, sal:1500, cap:0,  quit:.01},
+  rh: {n:'Especialista RH',rec:1200,delay:2,sal:900, cap:0,  quit:.01},
+  imp:{n:'Implementador IA',rec:2500,delay:3,sal:1300,cap:0, quit:.01},
+};
 const LV={
   2:{name:'Asistente',  icon:'🤖', cost:1800, tok:40,  boost:.15, sup:.3, max:3, note:'GPT propio: tu gente del área rinde +15% c/u'},
   3:{name:'Workflow',   icon:'⚙️', cost:4500, tok:100, boost:.30, sup:.5, max:3, note:'un clic dispara una cadena: gente del área +30% c/u'},
@@ -326,27 +332,56 @@ const TASKS_AUTO=[['Apagar incendio en el grupo de WhatsApp'],['Rehacer la pieza
 const CLIENT_NAMES=['Dental Norte','Ferretería Paz','Estudio Lex','Gimnasio K2','Pastas Doña Rosa','Inmobiliaria Sur','Clínica Vita','Logística Rápido','Vinos del Valle','Indumentaria Ona','Tech Andina','Constructora MD','Café Borges','Seguros Delta','Agro Pampa','Hotel Mirador','Academia Inglés Ya','Pet Shop Bigotes','Solar Energía','Distribuidora Olmos'];
 const HUMAN_NAMES=['Sofi','Marto','Caro','Nico','Flor','Juampi','Lu','Tomi','Vicky','Fede'];
 const MONTHS=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-const EPOCH=new Date(2022,10,28); // lunes 28 nov 2022
-const PRESENT_WEEK=188;           // ~30 jun 2026
+const EPOCH=new Date(2022,10,28);
+const PRESENT_WEEK=188;
 
-// historia real de la IA — la noticia abre la puerta, tu logro la concreta
+// 5 regímenes laborales
+const WORKMODES={
+  std: {n:'Presencial 5d',  cap:1.00, quit:1.0,  target:55},
+  hyb: {n:'Híbrido 3-2',    cap:0.97, quit:0.75, target:68},
+  remo:{n:'Home office 4-1',cap:0.93, quit:0.60, target:75},
+  d4:  {n:'Semana 4 días',  cap:0.90, quit:0.50, target:78},
+  h6:  {n:'Jornada 6h',     cap:0.80, quit:0.30, target:88},
+};
+
+// Proveedores: 3 fases de elección (s64, s118, s141)
+const PROV_NAMES={openai:'OpenAI',gemini:'Gemini',claude:'Claude'};
+const PROV_STATS=[
+  null, // fase 0 = sin elección todavía
+  {openai:{tok:1.00,asst:1.10,ag:1.00}, gemini:{tok:0.85,asst:0.95,ag:0.90}, claude:{tok:1.10,asst:1.05,ag:1.10}},
+  {openai:{tok:0.95,asst:1.10,ag:1.00}, gemini:{tok:0.90,asst:1.00,ag:0.90}, claude:{tok:1.10,asst:1.00,ag:1.15}},
+  {openai:{tok:1.00,asst:1.05,ag:1.20}, gemini:{tok:0.90,asst:1.05,ag:0.95}, claude:{tok:1.05,asst:1.00,ag:1.10}},
+];
+
+// Suscripciones per cápita
+const SUBS_DEF=[
+  {id:'plus',    ic:'💳', n:'ChatGPT Plus',     gate:'gpt4',     price:40,  scope:'all', d:'$40/persona/sem · humanos +8% · con Prompting: +15%'},
+  {id:'magnific',ic:'🎨', n:'Magnific Pro',      gate:'magnific', price:35,  scope:'go',  d:'$35/persona/sem (G+O) · humanos Growth+Ops +12% · CAC −10%'},
+  {id:'cowork',  ic:'🤖', n:'Claude Cowork',     gate:'cowork',   price:80,  scope:'all', d:'$80/persona/sem · humanos +40% · IA-Ops absorbe 1,5h c/u'},
+];
+
+// historia real de la IA
 const TIMELINE=[
-  {w:1,  id:'chatgpt',   t:'30 nov 2022 — OpenAI lanza <b>ChatGPT</b>. Empieza la era de la IA.'},
-  {w:16, id:'gpt4',      t:'mar 2023 — Sale <b>GPT-4</b>: tus prompts rinden +20%.'},
-  {w:50, id:'gpts',      t:'nov 2023 — OpenAI lanza los <b>GPTs</b>: ahora podés armar tu propio asistente.', modal:['🗞️ Llegaron los GPTs','Asistentes personalizados con tu contexto. Si documentaste procesos, podés construir <b>Asistentes (N2)</b> que potencien a tu equipo.']},
-  {w:64, id:'rivals',    t:'feb-mar 2024 — Salen <b>Gemini</b> y <b>Claude 3</b>: la competencia abarata el token (−15%).', fx:()=>{S.tokPrice*=0.85;}},
-  {w:76, id:'gpt4o',     t:'may 2024 — Sale <b>GPT-4o</b>: más rápido y más barato.'},
-  {w:77, id:'magnific',  t:'may 2024 — <b>Freepik compra Magnific</b>: generación de imágenes para todos.'},
-  {w:85, id:'n8n',       t:'2024 — <b>Make, Zapier y n8n</b> explotan con IA: se pueden encadenar pasos.', modal:['🗞️ Automatización en cadena','Make, Zapier, n8n: un clic de tu gente dispara una serie de pasos. Se desbloquea la capacitación en <b>Workflows (N3)</b>.']},
+  {w:1,  id:'chatgpt',    t:'30 nov 2022 — OpenAI lanza <b>ChatGPT</b>. Empieza la era de la IA.'},
+  {w:16, id:'gpt4',       t:'mar 2023 — Sale <b>GPT-4</b>: tus prompts rinden +20%.'},
+  {w:50, id:'gpts',       t:'nov 2023 — OpenAI lanza los <b>GPTs</b>: ahora podés armar tu propio asistente.', modal:['🗞️ Llegaron los GPTs','Asistentes personalizados con tu contexto. Si documentaste procesos, podés construir <b>Asistentes (N2)</b> que potencien a tu equipo.']},
+  {w:64, id:'rivals',     t:'feb-mar 2024 — Salen <b>Gemini</b> y <b>Claude 3</b>: el mercado se pluraliza. Elegí tu proveedor.', modal:['🔀 Elegí tu proveedor principal','OpenAI, Gemini o Claude: cada uno tiene diferente precio de tokens, calidad de asistentes y potencia de agentes.','prov1']},
+  {w:76, id:'gpt4o',      t:'may 2024 — Sale <b>GPT-4o</b>: más rápido y más barato.'},
+  {w:77, id:'magnific',   t:'may 2024 — <b>Freepik compra Magnific</b>: generación de imágenes para todos.'},
+  {w:78, id:'ws_gpt4o',   t:''}, // desbloquea workshop (invisible en ticker)
+  {w:85, id:'n8n',        t:'2024 — <b>Make, Zapier y n8n</b> explotan con IA: agentes de automatización disponibles.', modal:['🗞️ Automatización en cadena','Make, Zapier, n8n: un clic dispara una serie de pasos. Se desbloquea <b>Workflows (N3)</b> y los primeros <b>Agentes n8n</b> (más baratos, menos potentes).']},
   {w:99, id:'computeruse',t:'oct 2024 — Las IAs empiezan a usar la computadora solas. Algo grande se viene…'},
-  {w:112,id:'deepseek',  t:'ene 2025 — <b>DeepSeek</b> sacude el mercado: el token se desploma (−20%).', fx:()=>{S.tokPrice*=0.80;}},
-  {w:118,id:'claudecode',t:'feb 2025 — Anthropic lanza <b>Claude Code</b>: agentes que ejecutan solos.', modal:['🗞️ Salió Claude Code','Agentes que piensan y ejecutan SOLOS. Se desbloquea la capacitación en <b>Agentes (N4)</b>. Ojo: tus workflows viejos quedaron desactualizados — hay que migrarlos.'], fx:()=>{startMigration([2,3],'Claude Code');}},
-  {w:141,id:'gpt5',      t:'ago 2025 — Sale <b>GPT-5</b>. Tus agentes corren en modelo viejo: migralos.', fx:()=>{startMigration([4],'GPT-5');}},
-  {w:150,id:'orchnews',  t:'2025 — Los agentes empiezan a <b>orquestar agentes</b>. El techo se corre de nuevo.'},
-  {w:156,id:'stack',     t:'nov 2025 — Google lanza <b>Antigravity</b>. Guerra de stacks: Claude Code vs Codex vs Antigravity.', modal:['🗞️ Elegí tu stack','Claude Code, Codex o Antigravity: tu agencia tiene que estandarizar.','stack']},
-  {w:179,id:'spaces',    t:'abr 2026 — Freepik ahora es <b>Magnific</b> y lanza <b>Spaces</b>: workflows creativos en canvas.'},
-  {w:183,id:'agy2',      t:'may 2026 — Salen <b>Antigravity 2.0</b> y <b>GPT-5.5</b>: otra migración.', fx:()=>{startMigration([4,5],'la nueva generación');}},
-  {w:188,id:'present',   t:'30 jun 2026 — <b>Llegaste al presente.</b> La historia sigue… y vos seguís jugando.'},
+  {w:112,id:'deepseek',   t:'ene 2025 — <b>DeepSeek</b> sacude el mercado: el token se desploma (−20%).', fx:()=>{S.tokPrice*=0.80;}},
+  {w:118,id:'claudecode', t:'feb 2025 — Anthropic lanza <b>Claude Code</b>: agentes que ejecutan solos.', modal:['🗞️ Salió Claude Code','Agentes que piensan y ejecutan SOLOS. Se desbloquea <b>Agentes (N4)</b>. Tus workflows viejos (y agentes n8n si los tenés) quedaron desactualizados.'], fx:()=>{startMigration([2,3],'Claude Code');markN8nLegacy();queueProvElection(2);}},
+  {w:125,id:'ws_mcp',     t:''}, // desbloquea workshop MCP (invisible)
+  {w:141,id:'gpt5',       t:'ago 2025 — Sale <b>GPT-5</b>. Tus agentes corren en modelo viejo: migralos.', fx:()=>{startMigration([4],'GPT-5');queueProvElection(3);}},
+  {w:150,id:'orchnews',   t:'2025 — Los agentes empiezan a <b>orquestar agentes</b>. El techo se corre de nuevo.'},
+  {w:156,id:'stack',      t:'nov 2025 — Google lanza <b>Antigravity</b>. Guerra de stacks: Claude Code vs Codex vs Antigravity.', modal:['🗞️ Elegí tu stack','Claude Code, Codex o Antigravity: tu agencia tiene que estandarizar.','stack']},
+  {w:163,id:'cowork',     t:'ene 2026 — Anthropic lanza <b>Claude para Trabajo</b>: colaboración IA nativa para equipos.', modal:['🤖 Claude Cowork disponible','Colaboración IA nativa para equipos: tus personas rinden +40% si activás la suscripción Cowork.']},
+  {w:166,id:'openclaw',   t:'feb 2026 — <b>OpenClaw</b>: agentes personales para todos. Tus intervenciones valen el doble.', fx:()=>{S.openClaw=true;logMsg('🦾 OpenClaw activo: tus clicks de emergencia rinden ×2.','good');}},
+  {w:179,id:'spaces',     t:'abr 2026 — Freepik ahora es <b>Magnific</b> y lanza <b>Spaces</b>: workflows creativos en canvas.'},
+  {w:183,id:'agy2',       t:'may 2026 — Salen <b>Antigravity 2.0</b> y <b>GPT-5.5</b>: otra migración.', fx:()=>{startMigration([4,5],'la nueva generación');}},
+  {w:188,id:'present',    t:'30 jun 2026 — <b>Llegaste al presente.</b> La historia sigue… y vos seguís jugando.'},
 ];
 
 // ════════════════════════════════ STATE
@@ -357,6 +392,7 @@ function freshState(){ return {
   unlocked:{}, news:{}, proj:{}, lessons:{},
   clients:[mkClient('Dental Norte',1300,70),mkClient('Ferretería Paz',1250,72)],
   emps:{o:{jr:0,sr:0},g:{jr:0,sr:0},a:{jr:0,sr:0}}, mgr:0, trained:0,
+  rh:0, implem:0,
   pipeline:[], areaWeeks:{o:0,g:0,a:0}, docs:{o:false,g:false,a:false}, docsWip:{},
   workers:[], lastLv:{o:2,g:2,a:2},
   ads:{meta:0,google:0,tiktok:0}, cacW:{meta:1,google:1,tiktok:1},
@@ -367,6 +403,14 @@ function freshState(){ return {
   moral:70, workMode:'std',
   nextEvt:8, gotGuru:false, reformDone:false, sevMult:1, sevWeeks:0,
   autoTokens:false,
+  // it5 additions
+  subs:{plus:false,magnific:false,cowork:false},
+  subSince:{plus:0,magnific:0,cowork:0},
+  provider:'openai', provPhase:0,
+  referents:{o:false,g:false,a:false},
+  openClaw:false,
+  wsGpt4oExp:0, wsMcpBoost:false,
+  hcTarget:0, dirPaused:false, dirPauseReason:'',
 };}
 function mkClient(name,fee,sat){ const d=fee/130;
   return {id:rid(),name,fee:Math.round(fee),sat,dem:{o:+(d*.5).toFixed(1),g:+(d*.3).toFixed(1),a:+(d*.2).toFixed(1)}}; }
@@ -380,39 +424,64 @@ const P=id=>!!S.proj[id];
 function unlock(f){ if(S.unlocked[f])return false; S.unlocked[f]=true; return true; }
 const revNow=()=>S.clients.reduce((s,c)=>s+c.fee,0);
 const empArea=a=>S.emps[a].jr+S.emps[a].sr;
-const totalEmps=()=>empArea('o')+empArea('g')+empArea('a');
-const cntLv=(lv,area)=>S.workers.filter(w=>w.lv===lv&&(!area||w.area===area)).length;
-const trainedAgents=()=>S.workers.filter(w=>w.lv===4&&w.trained).length;
+const totalEmps=()=>empArea('o')+empArea('g')+empArea('a')+(S.rh||0)+(S.implem||0);
+const cntLv=(lv,area)=>S.workers.filter(w=>w.lv===lv&&!w.n8n&&(!area||w.area===area)).length;
+const cntN8n=(area)=>S.workers.filter(w=>w.lv===4&&w.n8n&&(!area||w.area===area)).length;
+const trainedAgents=()=>S.workers.filter(w=>w.lv===4&&w.trained&&!w.n8n).length;
 function dateOf(w){ const d=new Date(EPOCH.getTime()+(w-1)*7*864e5); return d.getDate()+' '+MONTHS[d.getMonth()]+' '+String(d.getFullYear()); }
 
 // ════════════════════════════════ CALC
-function tokNeed(){ return S.workers.reduce((s,w)=>s+LV[w.lv].tok,0); }
+function provStats(){ return S.provPhase&&PROV_STATS[S.provPhase]?PROV_STATS[S.provPhase][S.provider||'openai']:{tok:1,asst:1,ag:1}; }
+function subWeeklyCost(){
+  if(!U('tokens')) return 0;
+  const heads=totalEmps()+S.mgr+(S.rh||0);
+  const goHeads=S.emps.g.jr+S.emps.g.sr+S.emps.o.jr+S.emps.o.sr;
+  return (S.subs&&S.subs.plus?40*heads:0)+(S.subs&&S.subs.magnific?35*goHeads:0)+(S.subs&&S.subs.cowork?80*heads:0);
+}
+function recurringCosts(){
+  return subWeeklyCost()
+    +((S.referents&&S.referents.o)?150:0)+((S.referents&&S.referents.g)?150:0)+((S.referents&&S.referents.a)?150:0)
+    +(S.implem||0)*1300+(S.rh||0)*900+(P('dirrrhh')?250:0);
+}
+function tokNeed(){ return S.workers.reduce((s,w)=>s+(w.n8n?180:LV[w.lv].tok),0); }
+function tokNeedFull(){ return Math.round(tokNeed()*(provStats().tok||1)); }
 function tokCap(){ return Math.max(6000, tokNeed()*4); }
-const WORKMODES={ std:{n:'Estándar (5d)',cap:1,quit:1,target:55},
-                  d4:{n:'Semana de 4 días',cap:.90,quit:.5,target:78},
-                  h6:{n:'Jornada de 6h',cap:.80,quit:.3,target:88} };
-function moralMult(){ return .85+(S.moral/100)*.25; } // 60→1.0, 100→1.1, 20→0.9
+function moralMult(){ return .85+(S.moral/100)*.25; }
 function humanCapArea(a){
   let base=S.emps[a].jr*EMP.jr.cap+S.emps[a].sr*EMP.sr.cap;
   if(P('prompting')) base*=1.25;
   if(N('gpt4')) base*=1.05;
+  // suscripciones
+  if(S.subs&&S.subs.plus) base*=P('prompting')?1.15:1.08;
+  if(S.subs&&S.subs.magnific&&(a==='g'||a==='o')){base*=1.12;}
+  if(S.subs&&S.subs.cowork) base*=1.40;
+  // workshop temporal
+  if(S.wsGpt4oExp&&S.week<=S.wsGpt4oExp) base*=1.04;
+  // provider asst multiplies the AI-assist boost on this base
   return base*WORKMODES[S.workMode].cap*moralMult();
 }
 function aiMultArea(a,eff){
   const asst=Math.min(LV[2].max,cntLv(2,a)), wf=Math.min(LV[3].max,cntLv(3,a));
-  return 1+(asst*LV[2].boost+wf*LV[3].boost)*eff;
+  const ps=provStats();
+  const boost=(asst*LV[2].boost+wf*LV[3].boost)*eff*ps.asst;
+  let m=1+boost;
+  if(S.wsMcpBoost&&boost>0) m*=1.05;
+  return m;
 }
 function agentCapArea(a,eff){
   const orch=cntLv(5,a)>0;
+  const ps=provStats();
   return S.workers.filter(w=>w.lv===4&&w.area===a).reduce((s,w)=>{
-    let c=w.trained?LV[4].cap:LV[4].capU;
-    if(w.legacy)c*=.7;
+    let c;
+    if(w.n8n){ c=w.trained?30:14; }
+    else { c=(w.trained?LV[4].cap:LV[4].capU)*ps.ag; }
+    if(w.legacy) c*=.7;
     return s+c*(orch?1.5:1);
   },0)*eff;
 }
-function founderCap(){ return Math.max(0,12-totalEmps()*3); } // tus propias manos, hasta que el equipo crece
+function founderCap(){ return Math.max(0,12-totalEmps()*3); }
 function areaStats(){
-  const need=tokNeed(), eff=need>0?Math.min(1,S.tokens/need):1, out={};
+  const need=tokNeedFull(), eff=need>0?Math.min(1,S.tokens/need):1, out={};
   let demTot=0;
   for(const A of AREAS){ demTot+=S.clients.reduce((s,c)=>s+c.dem[A.id],0); }
   const fc=founderCap();
@@ -430,13 +499,15 @@ function calcSup(){
   let t=0;
   for(const A of AREAS){ const a=A.id, orch=cntLv(5,a)>0;
     t+=S.workers.filter(w=>w.area===a).reduce((s,w)=>{
-      let su=LV[w.lv].sup;
-      if(w.lv===4&&orch)su*=.6;
-      if(S.stack==='agy')su*=.85;
+      let su=w.n8n?1.0:LV[w.lv].sup;
+      if(w.lv===4&&orch&&!w.n8n) su*=.6;
+      if(S.stack==='agy') su*=.85;
       return s+su;
     },0);
   }
-  return Math.max(0,t-S.trained*1.0);
+  const coworkMult=S.subs&&S.subs.cowork?1.5:1.0;
+  t=Math.max(0,t-S.trained*coworkMult-(S.implem||0)*2);
+  return t;
 }
 function mgmtHours(){
   const T=totalEmps(), unt=Math.max(0,T-S.trained);
@@ -445,7 +516,9 @@ function mgmtHours(){
 }
 function coordHours(){
   const T=totalEmps()+S.mgr;
-  return .025*T*T*(S.docs.o&&S.docs.g&&S.docs.a?.7:1);
+  const allDocs=S.docs.o&&S.docs.g&&S.docs.a;
+  const nRef=S.referents?['o','g','a'].filter(a=>S.referents[a]).length:0;
+  return .025*T*T*(allDocs?.7:1)*Math.pow(0.85,nRef);
 }
 function clientOverhead(){
   const per=P('crm')?.10:(S.docs.o&&S.docs.g&&S.docs.a?.20:.35);
@@ -455,6 +528,22 @@ function docsWipHours(){ return Object.keys(S.docsWip).length*3; }
 function calcHours(){
   if(!U('autorun')) return 8+S.clickHours+S.pending*.5;
   return 8+founderCap()*.5+mgmtHours()+coordHours()+clientOverhead()+calcSup()+docsWipHours()+S.clickHours;
+}
+function hourHint(){
+  if(!U('autorun')) return '';
+  const h=calcHours(); if(h<=14) return '';
+  const fc=founderCap()*.5,mh=mgmtHours(),co=coordHours(),cl=clientOverhead(),su=calcSup(),dw=docsWipHours();
+  const terms=[
+    {v:fc,  lab:'fundador operando',  tip:'contratá: cada persona te saca horas de encima'},
+    {v:mh,  lab:'gestión',            tip:'sumá managers (1 cada 8 personas)'},
+    {v:co,  lab:'coordinación',       tip:'documentá las 3 áreas y asigná referentes'},
+    {v:cl,  lab:'clientes',           tip:'CRM reduce esto a la mitad'},
+    {v:su,  lab:'supervisión IA',     tip:'IA-Ops + implementadores absorben; evitá agentes crudos'},
+    {v:dw,  lab:'documentando',       tip:'temporal — vas a bajar cuando termine'},
+  ];
+  const top=terms.reduce((a,b)=>b.v>a.v?b:a);
+  if(top.v<1.5) return '';
+  return `💡 Mayor carga: <b>${top.lab} (${top.v.toFixed(1)}h)</b> → ${top.tip}`;
 }
 
 // ════════════════════════════════ MANUAL WORK (botón que nunca desaparece)
@@ -469,7 +558,8 @@ function doTask(){
     S.clickHours+=.45;
     if(S.clicks%3===0)taskIdx=(taskIdx+1)%TASKS_F0.length;
   } else {
-    const val=(P('prompting')?120:50)*fatigue;
+    const clawMult=S.openClaw?2:1;
+    const val=Math.round((P('prompting')?120:50)*fatigue*clawMult);
     S.cash+=val;
     S.clickHours+=.5;
     // apaga el fuego más caliente: baja demanda insatisfecha vía bono temporal de satisfacción
@@ -489,19 +579,33 @@ function manualPressure(){
 }
 
 // ════════════════════════════════ TEAM
+function pipelineMax(){ return (S.rh||0)>=1?4:2; }
+function pipelineDelay(type){ const d=EMP[type].delay; return (S.rh||0)>=1?Math.max(1,d-1):d; }
 function hire(type,area){
   const E=EMP[type];
-  if(S.cash<E.rec||S.pipeline.length>=2)return;
+  const nonBatch=S.pipeline.filter(p=>!p.batch).length;
+  if(S.cash<E.rec||nonBatch>=pipelineMax())return;
+  const delay=pipelineDelay(type);
   S.cash-=E.rec;
-  S.pipeline.push({type,area,left:E.delay});
-  logMsg('🔎 Búsqueda iniciada: '+E.n+(type!=='mgr'?' para '+AREAS.find(x=>x.id===area).name:'')+' (llega en '+E.delay+' sem). −'+fmt(E.rec),'');
+  S.pipeline.push({type,area,left:delay});
+  const aName=type==='mgr'||type==='rh'||type==='imp'?'':(` para ${AREAS.find(x=>x.id===area).name}`);
+  logMsg(`🔎 Búsqueda: ${E.n}${aName} (llega en ${delay} sem). −${fmt(E.rec)}`,'');
   if(!U('autorun')){
-    unlock('autorun');
-    clearInterval(pressureTimer);
-    syncPanels();
+    unlock('autorun'); clearInterval(pressureTimer); syncPanels();
     logMsg('Delegaste la búsqueda. <b>Mientras esperás, las semanas corren solas.</b>','good');
     lesson('l_auto','Soltaste el control por primera vez. El tiempo del negocio ya no es tu tiempo.');
   }
+  render();
+}
+function hireBatch(type,area){
+  const count=type==='jr'?3:2, baseRec=EMP[type].rec, cost=Math.round(baseRec*count*1.25);
+  if(type==='sr'&&!(S.rh>=1))return;
+  if(S.pipeline.filter(p=>p.batch&&p.area===area&&p.type===type).length)return;
+  if(S.cash<cost)return;
+  S.cash-=cost;
+  const delay=pipelineDelay(type);
+  for(let i=0;i<count;i++) S.pipeline.push({type,area,left:delay+i,batch:true});
+  logMsg(`🔎 Lote ×${count} ${EMP[type].n} para ${AREAS.find(x=>x.id===area).name}: llegan en ${delay}–${delay+count-1} sem. −${fmt(cost)}`,'');
   render();
 }
 function pipelineTick(){
@@ -509,8 +613,11 @@ function pipelineTick(){
     if(--p.left<=0){
       S.pipeline=S.pipeline.filter(x=>x!==p);
       if(p.type==='mgr')S.mgr++;
+      else if(p.type==='rh')S.rh=(S.rh||0)+1;
+      else if(p.type==='imp')S.implem=(S.implem||0)+1;
       else S.emps[p.area][p.type]++;
-      logMsg('🤝 Se sumó '+pick(HUMAN_NAMES)+' ('+EMP[p.type].n+(p.type!=='mgr'?' · '+AREAS.find(x=>x.id===p.area).name:'')+').','good');
+      const aName=p.type==='mgr'||p.type==='rh'||p.type==='imp'?'':(` · ${AREAS.find(x=>x.id===p.area).name}`);
+      logMsg(`🤝 Se sumó ${pick(HUMAN_NAMES)} (${EMP[p.type].n}${aName}).`,'good');
     }
   }
 }
@@ -518,13 +625,34 @@ function fireEmp(type,area){
   const have=type==='mgr'?S.mgr:S.emps[area][type];
   if(!have)return;
   const E=EMP[type], sev=Math.round(E.sal*(type==='jr'?3:4)*S.sevMult);
-  showEvent('✂️ Despedir '+E.n, 'Indemnización: <b>'+fmt(sev)+'</b>'+(type!=='mgr'?' ('+AREAS.find(x=>x.id===area).name+')':'')+'. Una persona menos que gestionar… y una inversión que se va.',[
-    {t:'Despedir ('+fmt(sev)+')',f:()=>{ if(S.cash<sev){logMsg('No te alcanza la caja para la indemnización.','warn');return;}
+  const aLabel=type==='mgr'?'':(' ('+AREAS.find(x=>x.id===area).name+')');
+  showEvent('✂️ Despedir '+E.n,'Indemnización: <b>'+fmt(sev)+'</b>'+aLabel+'. Una persona menos que gestionar… y una inversión que se va.',[
+    {t:'Despedir ('+fmt(sev)+')',f:()=>{ if(S.cash<sev){logMsg('No te alcanza la caja.','warn');return;}
       S.cash-=sev;
       if(type==='mgr')S.mgr--; else S.emps[area][type]--;
       if(S.trained>totalEmps()){S.trained=totalEmps();logMsg('Se fue gente capacitada: esa inversión no vuelve.','bad');}
-      S.moral=Math.max(15,S.moral-6); // los despidos asustan al resto
+      S.moral=Math.max(15,S.moral-6);
       logMsg('✂️ Despediste a '+pick(HUMAN_NAMES)+' ('+E.n+'). −'+fmt(sev),'warn'); }},
+    {t:'Mejor no',f:()=>{}}
+  ]);
+}
+function fireRH(){
+  if(!(S.rh>=1))return;
+  const sev=Math.round(EMP.rh.sal*4*S.sevMult);
+  showEvent('✂️ Despedir Especialista RH','Indemnización: <b>'+fmt(sev)+'</b>.',[
+    {t:'Despedir ('+fmt(sev)+')',f:()=>{ if(S.cash<sev){logMsg('No te alcanza.','warn');return;}
+      S.cash-=sev; S.rh--; S.moral=Math.max(15,S.moral-4);
+      logMsg('✂️ Especialista RH fuera. −'+fmt(sev),'warn'); }},
+    {t:'Mejor no',f:()=>{}}
+  ]);
+}
+function fireImplem(){
+  if(!(S.implem>=1))return;
+  const sev=Math.round(EMP.imp.sal*4*S.sevMult);
+  showEvent('✂️ Despedir Implementador IA','Indemnización: <b>'+fmt(sev)+'</b>.',[
+    {t:'Despedir ('+fmt(sev)+')',f:()=>{ if(S.cash<sev){logMsg('No te alcanza.','warn');return;}
+      S.cash-=sev; S.implem--; S.moral=Math.max(15,S.moral-4);
+      logMsg('✂️ Implementador IA fuera. −'+fmt(sev),'warn'); }},
     {t:'Mejor no',f:()=>{}}
   ]);
 }
@@ -537,8 +665,8 @@ function trainOne(){
 function moralTick(){
   const hrs=calcHours();
   let target=WORKMODES[S.workMode].target;
-  if(hrs>55)target-=12;            // el caos del fundador se contagia
-  if(S.trained>0)target+=5;        // invertir en la gente se nota
+  if(hrs>55)target-=12;
+  if(S.trained>0)target+=5;
   S.moral+=(target-S.moral)*.12;
   S.moral=Math.max(15,Math.min(100,S.moral));
 }
@@ -552,8 +680,16 @@ function quitsTick(){
         const totBefore=totalEmps();
         S.emps[a][t]--;
         const wasTrained=S.trained>0&&Math.random()<S.trained/Math.max(1,totBefore);
-        if(wasTrained){S.trained--;logMsg('👋 Renunció '+pick(HUMAN_NAMES)+' ('+EMP[t].n+', '+AREAS.find(x=>x.id===a).name+') — era de los capacitados en IA-Ops. Duele doble.','bad');}
-        else logMsg('👋 Renunció '+pick(HUMAN_NAMES)+' ('+EMP[t].n+', '+AREAS.find(x=>x.id===a).name+').'+(hrs>60?' El barco hace agua y se nota.':''),'warn');
+        if(wasTrained){S.trained--;logMsg('👋 Renunció '+pick(HUMAN_NAMES)+' ('+EMP[t].n+', '+AREAS.find(x=>x.id===a).name+') — era IA-Ops. Duele doble.','bad');}
+        else{
+          // referente del área?
+          if(t==='sr'&&S.referents&&S.referents[a]&&Math.random()<.35){
+            S.referents[a]=false;
+            logMsg('👋 Renunció el Referente de '+AREAS.find(x=>x.id===a).name+'. Coordinación sube de nuevo.','bad');
+          } else {
+            logMsg('👋 Renunció '+pick(HUMAN_NAMES)+' ('+EMP[t].n+', '+AREAS.find(x=>x.id===a).name+').'+(hrs>60?' El barco hace agua.':''),'warn');
+          }
+        }
         if(S.trained>totalEmps())S.trained=totalEmps();
       } }
     }
@@ -569,8 +705,7 @@ const PROJECTS=[
   {id:'doc',ic:'📋',n:'Documentar procesos',c:2500,multi:AREAS,
    vis:()=>P('prompting'),
    reqA:a=>S.areaWeeks[a]>=3&&empArea(a)>=2,reqTxtA:a=>'que '+AREAS.find(x=>x.id===a).name+' trabaje 3 semanas con ≥2 personas',
-   d:'Primero lo hacen las personas; después se documenta. Sin contexto, la IA alucina. (+3h/sem tuyas por 2 semanas — o consultor $7.000 ya)',
-   },
+   d:'Primero lo hacen las personas; después se documenta. Sin contexto, la IA alucina. (+3h/sem tuyas por 2 semanas — o consultor $7.000 ya)',},
   {id:'crm',ic:'🛠',n:'CRM con IA',c:5000,sub:150,
    vis:()=>N('gpts')&&S.clients.length>=6,req:()=>true,reqTxt:()=>'',
    d:'Tus clientes dejan de caerse solos: la satisfacción decae 50% menos y gestionarlos te cuesta menos horas.'},
@@ -584,45 +719,92 @@ const PROJECTS=[
    vis:()=>N('n8n'),req:()=>cntLv(2)>=2&&revNow()>=8000,reqTxt:()=>'2 Asistentes ('+cntLv(2)+'/2) y facturar $8k ('+fmt(revNow())+')',
    d:'Make, Zapier, n8n: un clic dispara una cadena de pasos. Desbloquea construir Workflows (N3).',
    fx:()=>{lesson('l_n3','<b>Nivel 3 · Workflow</b>: tu gente dispara cadenas enteras con un clic. Todavía hace falta gente.');}},
-  {id:'ag',ic:'📚',n:'Capacitación: Agentes',c:9000,
-   vis:()=>N('claudecode'),req:()=>cntLv(3)>=2&&revNow()>=18000,reqTxt:()=>'2 Workflows ('+cntLv(3)+'/2) y facturar $18k ('+fmt(revNow())+')',
-   d:'Claude Code y los suyos: IA que ejecuta SOLA. Desbloquea construir Agentes (N4). Nacen crudos: hay que entrenarlos.',
+  {id:'n8nag',ic:'🔧',n:'Capacitación: Agentes n8n',c:5000,
+   vis:()=>N('n8n')&&!N('claudecode'),req:()=>cntLv(3)>=2&&revNow()>=12000,reqTxt:()=>'2 Workflows ('+cntLv(3)+'/2) y facturar $12k ('+fmt(revNow())+')',
+   d:'Agentes de automatización n8n: más baratos ($6k c/u), cap 30/14 entrenado/crudo, 1h supervisión, pueden alucinar. Disponibles antes de Claude Code.',
+   fx:()=>{lesson('l_n4a','<b>Agentes n8n</b>: automatización encadenada. Frágiles pero disponibles ya.');}},
+  {id:'ag',ic:'📚',n:'Capacitación: Agentes',
+   cf:()=>P('n8nag')?6000:9000,
+   vis:()=>N('claudecode'),
+   req:()=>(cntLv(3)>=2&&revNow()>=18000)||(P('n8nag')&&S.workers.filter(w=>w.n8n&&w.trained).length>=1&&revNow()>=18000),
+   reqTxt:()=>'2 Workflows o 1 agente n8n entrenado ('+cntLv(3)+' WF / '+S.workers.filter(w=>w.n8n&&w.trained).length+' n8n) + facturar $18k',
+   d:()=>'Claude Code y los suyos: IA que ejecuta SOLA. Desbloquea Agentes (N4). Nacen crudos: hay que entrenarlos.'+(P('n8nag')?' <b>Descuento por tener n8n.</b>':''),
    fx:()=>{lesson('l_n4','<b>Nivel 4 · Agente</b>: piensa y ejecuta solo. Supervisión, no fe.');}},
   {id:'aiops',ic:'📚',n:'Capacitación del equipo: IA-Ops',c:6000,
    vis:()=>P('ag'),req:()=>true,reqTxt:()=>'',
-   d:'Tu gente aprende a operar agentes: cada capacitado ($1.200 c/u después) absorbe 1h de supervisión, cuesta menos gestión y entrena agentes al instante.'},
+   d:'Tu gente aprende a operar agentes: cada capacitado ($1.200 c/u) absorbe 1h supervisión (1,5h con Cowork), reduce gestión y entrena agentes al instante.'},
   {id:'orch',ic:'📚',n:'Capacitación: Orquestación',c:16000,
    vis:()=>N('orchnews'),req:()=>trainedAgents()>=2&&revNow()>=25000,reqTxt:()=>'2 Agentes entrenados ('+trainedAgents()+'/2) y facturar $25k ('+fmt(revNow())+')',
    d:'Agentes manejando agentes. Desbloquea el Orquestador (N5): potencia tus N4 y desploma la supervisión.',
    fx:()=>{lesson('l_n5','<b>Nivel 5 · Orquestador</b>: el techo. Tu operación se maneja sola.');}},
+  {id:'ref',ic:'🌟',n:'Referente de área',c:2000,multi:AREAS,isRef:true,
+   vis:()=>totalEmps()>=8,
+   reqA:a=>S.docs[a]&&empArea(a)>=4&&S.emps[a].sr>=1&&!(S.referents&&S.referents[a]),
+   reqTxtA:a=>AREAS.find(x=>x.id===a).name+' docs + ≥4 personas + ≥1 senior',
+   d:'Facilita la coordinación del área: coord ×0,85. +$150/sem. Si un senior renuncia, 35% de que sea el referente.'},
+  {id:'ws_gpt4o',ic:'🎓',n:'Workshop GPT-4o multimodal',c:1500,
+   vis:()=>N('gpt4o'),req:()=>true,reqTxt:()=>'',
+   d:'Un día de capacitación: humanos +4% por 8 semanas.',
+   fx:()=>{S.wsGpt4oExp=S.week+8;logMsg('🎓 Workshop GPT-4o: +4% hum por 8 sem.','good');}},
+  {id:'ws_mcp',ic:'🎓',n:'Workshop Contexto / MCP',c:2000,
+   vis:()=>N('ws_mcp'),req:()=>cntLv(2)>=1||cntLv(3)>=1,reqTxt:()=>'al menos 1 Asistente o Workflow',
+   d:'Tu equipo aprende a dar contexto: asistentes y workflows +5% permanente.',
+   fx:()=>{S.wsMcpBoost=true;logMsg('🎓 Workshop MCP: asistentes +5% permanente.','good');}},
   {id:'autotok',ic:'🔧',n:'Auto-compra de tokens',c:12000,
-   vis:()=>cntLv(4)>=1,req:()=>true,reqTxt:()=>'',
+   vis:()=>cntLv(4)>=1||cntN8n()>=1,req:()=>true,reqTxt:()=>'',
    d:'Una implementación seria: el sistema se repone tokens solo, comprando al precio del día.'},
   {id:'migsoft',ic:'🔁',n:'Software de migración',c:8000,
    vis:()=>S.news.claudecode&&(S.migration||S.proj.ag),req:()=>true,reqTxt:()=>'',
-   d:'Las próximas migraciones de modelo se hacen solas. Automatizá hasta el dolor de migrar.'},
-  {id:'ceo',ic:'👔',n:'Contratar CEO y retirarte',c:40000,
-   vis:()=>revNow()>=15000,req:()=>S.cash>=250000&&revNow()>=20000&&calcHours()<=30&&S.docs.o&&S.docs.g&&S.docs.a,
+   d:'Las próximas migraciones de modelo se hacen solas. También cubre cambios de proveedor y upgrades n8n.'},
+  {id:'dirrrhh',ic:'👔',n:'Director de RRHH',c:12000,sub:250,
+   vis:()=>(S.rh||0)>=1&&totalEmps()>=10,req:()=>true,reqTxt:()=>'',
+   d:'Slider de headcount objetivo: auto-búsquedas + auto-reemplazo de renuncias. Pausa si horas críticas o caja baja.',
+   fx:()=>{S.hcTarget=totalEmps();logMsg('👔 Director de RRHH activo. Setear headcount objetivo en Proyectos.','good');}},
+  {id:'ceo',ic:'👔',n:'Contratar CEO y retirarte',
+   cf:()=>Math.max(40000,Math.round(revNow()*8)),
+   vis:()=>revNow()>=15000,
+   req:()=>S.cash>=250000&&revNow()>=20000&&calcHours()<=30&&S.docs.o&&S.docs.g&&S.docs.a,
    reqTxt:()=>'caja $250k ('+fmt(S.cash)+'), facturar $20k ('+fmt(revNow())+'), ≤30h tuyas ('+calcHours().toFixed(0)+'h) y 3 áreas documentadas',
-   d:'El final: un CEO toma tu silla. Nadie compra tu caos: el negocio tiene que andar sin vos.',
+   d:()=>'El final: un CEO toma tu silla. Costo: '+fmt(Math.max(40000,Math.round(revNow()*8)))+' (crece con tu facturación). Nadie compra tu caos.',
    fx:()=>{endGame('retire');}},
 ];
+function toggleSub(id){
+  if(!S.subs)S.subs={plus:false,magnific:false,cowork:false};
+  if(!S.subSince)S.subSince={plus:0,magnific:0,cowork:0};
+  if(S.subs[id]){
+    if(S.week-S.subSince[id]<4)return; // permanencia mínima
+    S.subs[id]=false;
+    logMsg('💳 '+SUBS_DEF.find(s=>s.id===id).n+' desactivada.','warn');
+  } else {
+    S.subs[id]=true; S.subSince[id]=S.week;
+    logMsg('💳 '+SUBS_DEF.find(s=>s.id===id).n+' activada.','good');
+  }
+  render();
+}
 function projVisible(p){ return p.vis(); }
 function buyProject(id,area){
   const p=PROJECTS.find(x=>x.id===id); if(!p)return;
+  const cost=p.cf?p.cf():p.c;
   if(id==='doc'){
     if(S.docs[area]||S.docsWip[area])return;
-    if(!p.reqA(area)||S.cash<p.c)return;
-    S.cash-=p.c; S.docsWip[area]=2;
-    logMsg('📋 Documentando '+AREAS.find(x=>x.id===area).name+': +3h/sem tuyas por 2 semanas. −'+fmt(p.c),'accent');
+    if(!p.reqA(area)||S.cash<cost)return;
+    S.cash-=cost; S.docsWip[area]=2;
+    logMsg('📋 Documentando '+AREAS.find(x=>x.id===area).name+': +3h/sem tuyas por 2 semanas. −'+fmt(cost),'accent');
     render(); return;
   }
-  if(P(id)||!p.req()||S.cash<p.c)return;
-  S.cash-=p.c; S.proj[id]=true;
+  if(id==='ref'){
+    if(!area||!S.referents||(S.referents[area])||!p.reqA(area)||S.cash<cost)return;
+    S.cash-=cost; S.referents[area]=true;
+    logMsg('🌟 Referente de '+AREAS.find(x=>x.id===area).name+' asignado. Coord ×0,85. −'+fmt(cost),'good');
+    render(); return;
+  }
+  if(P(id)||!p.req()||S.cash<cost)return;
+  S.cash-=cost; S.proj[id]=true;
   if(id==='autotok')S.autoTokens=true;
   if(id==='migsoft'){S.migSoft=true;
     if(S.migration){S.workers.forEach(x=>x.legacy=false);finishMigration();}}
-  logMsg(p.ic+' '+p.n+' ✓ −'+fmt(p.c)+(p.sub?' (+'+fmt(p.sub)+'/sem)':''),'accent');
+  const subLabel=p.sub?' (+'+fmt(p.sub)+'/sem)':'';
+  logMsg(p.ic+' '+p.n+' ✓ −'+fmt(cost)+subLabel,'accent');
   if(p.fx)p.fx();
   checkUnlocks(); render();
 }
@@ -641,21 +823,80 @@ function docsTick(){
   }
 }
 
+// ════════════════════════════════ PROVEEDOR
+function queueProvElection(phase){
+  const stats=PROV_STATS[phase];
+  const acts=Object.entries(PROV_NAMES).map(([id,name])=>{
+    const ps=stats[id];
+    return {t:name+' (tok ×'+ps.tok+' asst ×'+ps.asst+' ag ×'+ps.ag+')',f:()=>selectProvider(id,phase)};
+  });
+  modalQueue.push(['🔀 Re-elección de proveedor'+(phase>1?' ('+(phase===2?'2025':'2025 Q3')+')':''),
+    'Los modelos cambiaron. ¿Renegociás tu proveedor? Cambiar cuesta $1.500 + migración.',acts]);
+}
+function selectProvider(id,phase){
+  const firstTime=S.provPhase===0;
+  S.provPhase=phase;
+  if(!firstTime&&S.provider!==id){
+    if(S.cash<1500){logMsg('Sin caja para cambiar de proveedor ($1.500).','bad');return;}
+    S.cash-=1500;
+    const aff=S.workers.filter(w=>w.lv>=2&&!w.legacy);
+    if(aff.length&&!S.migSoft){
+      aff.forEach(w=>w.legacy=true);
+      S.migration={total:aff.length,why:'cambio a '+PROV_NAMES[id]};
+      syncPanels();
+      logMsg('⚡ Cambiaste a '+PROV_NAMES[id]+': '+aff.length+' workers a migrar. −$1.500','warn');
+    } else if(S.migSoft&&aff.length){
+      logMsg('🔁 Cambiaste a '+PROV_NAMES[id]+': migsoft lo resolvió. −$1.500','good');
+    } else {
+      logMsg('✅ Cambiaste a '+PROV_NAMES[id]+'. −$1.500','good');
+    }
+  } else if(firstTime){
+    logMsg('🔀 Proveedor: '+PROV_NAMES[id]+'.','good');
+  } else {
+    logMsg('🔀 Renovaste con '+PROV_NAMES[id]+'. Sin cambios.','good');
+  }
+  S.provider=id; render();
+}
+
 // ════════════════════════════════ TIMELINE / NEWS
+function markN8nLegacy(){
+  const n8ns=S.workers.filter(w=>w.n8n&&!w.legacy);
+  if(!n8ns.length)return;
+  if(S.migSoft){
+    n8ns.forEach(w=>{w.n8n=false;w.trained=true;w.legacy=false;});
+    logMsg('🔁 Tus agentes n8n migrados a Claude Code automáticamente (migsoft). −$0','good');
+    return;
+  }
+  n8ns.forEach(w=>w.legacy=true);
+  if(S.migration) S.migration.total+=n8ns.length;
+  else{ S.migration={total:n8ns.length,why:'Claude Code (n8n obsoleto)'}; syncPanels(); }
+  logMsg('⚡ '+n8ns.length+' agente(s) n8n obsoletos. Upgradeálos a Claude Code ($4k c/u) o usá la consultora.','warn');
+}
 function newsTick(){
   for(const ev of TIMELINE){
     if(ev.w<=S.week&&!S.news[ev.id]){
       S.news[ev.id]=true;
-      $('newsTicker').hidden=false;
-      $('newsTicker').innerHTML='🗞️ '+ev.t;
-      logMsg('🗞️ '+ev.t,'news');
+      // eventos invisibles (solo desbloquean)
+      if(ev.t){
+        $('newsTicker').hidden=false;
+        $('newsTicker').innerHTML='🗞️ '+ev.t;
+        logMsg('🗞️ '+ev.t,'news');
+      }
       if(ev.fx)ev.fx();
       if(ev.modal){
-        if(ev.modal[2]==='stack'){
+        const mtype=ev.modal[2];
+        if(mtype==='stack'){
           showEvent(ev.modal[0],ev.modal[1],[
-            {t:'Claude Code (−10% tokens)',f:()=>{S.stack='cc';logMsg('Stack: Claude Code. Tus workers queman −10% de tokens.','good');}},
-            {t:'Codex (−15% builds)',f:()=>{S.stack='codex';logMsg('Stack: Codex. Construir workers cuesta −15%.','good');}},
-            {t:'Antigravity (−15% supervisión)',f:()=>{S.stack='agy';logMsg('Stack: Antigravity. Supervisión de workers −15%.','good');}},
+            {t:'Claude Code (−10% tokens)',f:()=>{S.stack='cc';logMsg('Stack: Claude Code. −10% quema de tokens.','good');}},
+            {t:'Codex (−15% builds)',f:()=>{S.stack='codex';logMsg('Stack: Codex. Builds −15%.','good');}},
+            {t:'Antigravity (−15% supervisión)',f:()=>{S.stack='agy';logMsg('Stack: Antigravity. Supervisión −15%.','good');}},
+          ]);
+        } else if(mtype==='prov1'){
+          const ps=PROV_STATS[1];
+          showEvent(ev.modal[0],ev.modal[1],[
+            {t:'OpenAI (tok ×'+ps.openai.tok+' asst ×'+ps.openai.asst+' ag ×'+ps.openai.ag+')',f:()=>selectProvider('openai',1)},
+            {t:'Gemini (tok ×'+ps.gemini.tok+' asst ×'+ps.gemini.asst+' ag ×'+ps.gemini.ag+')',f:()=>selectProvider('gemini',1)},
+            {t:'Claude (tok ×'+ps.claude.tok+' asst ×'+ps.claude.asst+' ag ×'+ps.claude.ag+')',f:()=>selectProvider('claude',1)},
           ]);
         } else showEvent(ev.modal[0],ev.modal[1],[{t:'Dale',f:()=>{}}]);
       }
@@ -680,17 +921,26 @@ function startMigration(levels,why){
 function migrateOne(){
   if(!S.migration)return;
   const w=S.workers.find(x=>x.legacy);
-  if(w){w.legacy=false; logMsg('⚡ Migraste un '+LV[w.lv].name+'.','');}
+  if(w){
+    if(w.n8n){
+      if(S.cash<4000){logMsg('Faltan $4.000 para upgrade n8n.','bad');return;}
+      S.cash-=4000; w.n8n=false; w.trained=true; w.legacy=false;
+      logMsg('⬆ Agente n8n → Claude Code (entrenado). −$4.000','good');
+    } else {
+      w.legacy=false; logMsg('⚡ Migraste un '+LV[w.lv].name+'.','');
+    }
+  }
   if(!S.workers.some(x=>x.legacy)){finishMigration();}
   render();
 }
 function migConsult(){
   if(!S.migration)return;
-  const left=S.workers.filter(x=>x.legacy).length, cost=left*800;
+  const legacy=S.workers.filter(x=>x.legacy);
+  const cost=legacy.reduce((s,w)=>s+(w.n8n?4000:800),0);
   if(S.cash<cost)return;
   S.cash-=cost;
-  S.workers.forEach(x=>x.legacy=false);
-  logMsg('🧑‍💼 Una consultora migró tus '+left+' workers restantes. −'+fmt(cost),'accent');
+  legacy.forEach(w=>{if(w.n8n){w.n8n=false;w.trained=true;}w.legacy=false;});
+  logMsg('🧑‍💼 Consultora migró '+legacy.length+' workers. −'+fmt(cost),'accent');
   finishMigration();
 }
 function finishMigration(){
@@ -738,15 +988,14 @@ function tick(){
 
   const st=areaStats();
   // tokens
-  let burn=tokNeed(); if(S.stack==='cc')burn=Math.round(burn*.9);
+  let burn=tokNeedFull(); if(S.stack==='cc')burn=Math.round(burn*.9);
   S.tokens=Math.max(0,S.tokens-burn);
   if(S.autoTokens&&burn>0&&S.tokens<burn*1.5){
-    // buffer de 3 semanas de consumo, comprado al precio del día
     const want=Math.min(tokCap(),Math.ceil(burn*3))-S.tokens, cost=Math.round(want*S.tokPrice);
-    if(want>0&&S.cash>=cost){S.cash-=cost;S.tokens+=want;logMsg('🔧 Auto-compra: +'+want+' tok por '+fmt(cost)+' ($'+S.tokPrice.toFixed(2)+'/tok).','');}
+    if(want>0&&S.cash>=cost){S.cash-=cost;S.tokens+=want;logMsg('🔧 Auto-compra: +'+want+' tok por '+fmt(cost)+'.','');}
     else if(want>0)logMsg('⚠️ Auto-compra sin caja: faltan '+fmt(cost-S.cash)+'.','warn');
   }
-  if(st._eff<1&&st._need>0)logMsg('⚠️ Sin tokens: tu IA rinde al '+Math.round(st._eff*100)+'%.','warn');
+  if(st._eff<1&&st._need>0)logMsg('⚠️ Sin tokens: IA rinde al '+Math.round(st._eff*100)+'%.','warn');
 
   // entrenamiento de agentes
   for(const w of S.workers){ if(w.lv===4&&!w.trained){
@@ -754,10 +1003,37 @@ function tick(){
     else if(w.tleft!=null&&--w.tleft<=0){w.trained=true;logMsg('🎓 Un Agente terminó su entrenamiento.','good');}
   } }
 
+  // halucaciones n8n
+  for(const w of S.workers.filter(x=>x.n8n)){
+    const rate=w.trained?.02:.04;
+    if(Math.random()<rate){
+      if(Math.random()<.5){
+        const dmg=Math.round(800+Math.random()*1200); S.cash-=dmg;
+        logMsg('🤖 Agente n8n alucinó: pérdida directa −'+fmt(dmg),'bad');
+      } else if(S.clients.length){
+        const c=pick(S.clients); c.sat=Math.max(0,c.sat-6);
+        logMsg('🤖 Agente n8n alucinó: '+c.name+' −6 satisfacción.','warn');
+      }
+    }
+  }
+
+  // DRH auto-hiring
+  if(P('dirrrhh')&&S.hcTarget>0){
+    const hrs=calcHours();
+    const payroll6=(totalEmps()*(EMP.jr.sal+EMP.sr.sal)/2+S.mgr*EMP.mgr.sal)*6;
+    const shouldPause=hrs>S.burnCap-12||S.cash<payroll6;
+    S.dirPaused=shouldPause; S.dirPauseReason=hrs>S.burnCap-12?'horas en zona crítica':'caja baja';
+    if(!shouldPause&&totalEmps()<S.hcTarget&&S.pipeline.filter(p=>!p.batch).length<pipelineMax()){
+      const a=AREAS[Math.floor(Math.random()*3)].id;
+      hire('jr',a);
+      logMsg('👔 DRH inició búsqueda automática (objetivo: '+S.hcTarget+' personas).','');
+    }
+  }
+
   // economía
   const rev=revNow();
   const sal=Object.values(S.emps).reduce((s,e)=>s+e.jr*EMP.jr.sal+e.sr*EMP.sr.sal,0)+S.mgr*EMP.mgr.sal;
-  const subs=(P('crm')?150:0)+(P('mkt')?120:0)+(P('sales')?120:0);
+  const subs=(P('crm')?150:0)+(P('mkt')?120:0)+(P('sales')?120:0)+recurringCosts();
   const ad=S.ads.meta+S.ads.google+S.ads.tiktok;
 
   // cobranzas (Admin)
@@ -881,18 +1157,35 @@ function fireEvent(){
 // ════════════════════════════════ WORKERS
 function buildWorker(areaId){
   const sel=$('sel-'+areaId); if(!sel)return;
-  const lv=+sel.value, L=LV[lv];
+  const val=sel.value;
+  const aName=AREAS.find(a=>a.id===areaId).name;
+
+  if(val==='4n'){
+    const n8nCost=6000;
+    if(cntN8n(areaId)>=2||S.cash<n8nCost)return;
+    S.cash-=n8nCost;
+    const w={id:rid(),area:areaId,lv:4,n8n:true,trained:false,tleft:2,legacy:false};
+    // implementadores hacen que nazcan entrenados
+    if((S.implem||0)>0){w.trained=true;w.tleft=0;}
+    S.workers.push(w); S.lastLv[areaId]='4n';
+    logMsg('🔧 Agente n8n en '+aName+': '+(w.trained?'entrenado (Implementador).':'crudo (cap 14, 1h sup). Entrenalo o esperá.')+' −$6.000','good');
+    checkUnlocks(); render(); return;
+  }
+
+  const lv=+val, L=LV[lv];
   let cost=L.cost; if(S.stack==='codex')cost=Math.round(cost*.85);
   if(S.cash<cost)return;
   if((lv===2||lv===3)&&cntLv(lv,areaId)>=L.max)return;
   S.cash-=cost;
   const w={id:rid(),area:areaId,lv};
-  if(lv===4){w.trained=S.trained>0;w.tleft=w.trained?0:2;
-    if(!w.trained)logMsg('🦾 Agente nuevo en '+AREAS.find(a=>a.id===areaId).name+': crudo (rinde 25). Entrenalo: $2.500 o esperá 2 semanas. −'+fmt(cost),'good');
-    else logMsg('🦾 Agente en '+AREAS.find(a=>a.id===areaId).name+', entrenado al toque por tu equipo IA-Ops. −'+fmt(cost),'good');}
-  else logMsg(L.icon+' '+L.name+' en '+AREAS.find(a=>a.id===areaId).name+'. −'+fmt(cost),'good');
-  S.workers.push(w);
-  S.lastLv[areaId]=lv;
+  if(lv===4){
+    // implementadores hacen que nazcan entrenados
+    const bornTrained=S.trained>0||(S.implem||0)>0;
+    w.trained=bornTrained; w.tleft=bornTrained?0:2;
+    if(!w.trained)logMsg('🦾 Agente en '+aName+': crudo (cap 25). Entrenalo ($2.500) o esperá 2 sem. −'+fmt(cost),'good');
+    else logMsg('🦾 Agente en '+aName+': entrenado al toque. −'+fmt(cost),'good');
+  } else logMsg(L.icon+' '+L.name+' en '+aName+'. −'+fmt(cost),'good');
+  S.workers.push(w); S.lastLv[areaId]=lv;
   checkUnlocks(); render();
 }
 function trainAgent(id){
@@ -902,12 +1195,21 @@ function trainAgent(id){
   logMsg('🎓 Agente entrenado a pago. −'+fmt(2500),'');
   render();
 }
+function upgradeN8n(area){
+  const w=S.workers.find(x=>x.area===area&&x.n8n&&x.legacy);
+  if(!w||S.cash<4000)return;
+  S.cash-=4000; w.n8n=false; w.trained=true; w.legacy=false;
+  logMsg('⬆ Agente n8n → Claude Code entrenado en '+AREAS.find(a=>a.id===area).name+'. −$4.000','good');
+  if(!S.workers.some(x=>x.legacy))finishMigration();
+  render();
+}
 function scrapWorker(area,lv){
-  const w=S.workers.find(x=>x.area===area&&x.lv===lv);
+  const isN8n=lv==='n8n';
+  const w=isN8n?S.workers.find(x=>x.area===area&&x.n8n):S.workers.find(x=>x.area===area&&x.lv===lv&&!x.n8n);
   if(!w)return;
   S.workers=S.workers.filter(x=>x.id!==w.id);
   if(S.migration&&!S.workers.some(x=>x.legacy))finishMigration();
-  logMsg('🗑 Diste de baja un '+LV[lv].name+'. Sin indemnización: es la gracia.','');
+  logMsg('🗑 Diste de baja un '+(isN8n?'Agente n8n':LV[lv].name)+'. Sin indemnización: es la gracia.','');
   render();
 }
 
@@ -1018,6 +1320,7 @@ function buildAds(){
 }
 function availLevels(area){
   const out=[];
+  if(P('n8nag')&&!N('claudecode')&&cntN8n(area)<2) out.push('4n');
   if(P('prompting')&&N('gpts')&&S.docs[area])out.push(2);
   if(P('wf')&&S.docs[area])out.push(3);
   if(P('ag'))out.push(4);
@@ -1030,8 +1333,15 @@ function render(){
   if(!S)return;
   $('stWeek').textContent='S'+S.week;
   $('stDate').textContent=dateOf(S.week);
+  const nRef=S.referents?['o','g','a'].filter(a=>S.referents[a]).length:0;
   $('hBreak').textContent=U('autorun')
-    ?'8h dirección'+(founderCap()>0?' + '+(founderCap()*.5).toFixed(1)+'h operando vos':'')+' + '+mgmtHours().toFixed(1)+'h gestión + '+coordHours().toFixed(1)+'h coordinación + '+clientOverhead().toFixed(1)+'h clientes + '+calcSup().toFixed(1)+'h supervisión'+(docsWipHours()?' + '+docsWipHours()+'h documentando':'')+(S.clickHours>.5?' + '+S.clickHours.toFixed(1)+'h incendios':'')
+    ?'8h dirección'+(founderCap()>0?' + '+(founderCap()*.5).toFixed(1)+'h operando':'')
+      +' + '+mgmtHours().toFixed(1)+'h gestión'
+      +' + '+coordHours().toFixed(1)+'h coord'+(nRef?' ('+nRef+' ref)':'')
+      +' + '+clientOverhead().toFixed(1)+'h clientes'
+      +' + '+calcSup().toFixed(1)+'h sup'
+      +(docsWipHours()?' + '+docsWipHours()+'h docs':'')
+      +(S.clickHours>.5?' + '+S.clickHours.toFixed(1)+'h incend':'')
     :'Cada tarea a mano te hunde un poco más. Así no escala.';
   $('streak').textContent=S.streak+'/3';
 
@@ -1066,24 +1376,57 @@ function render(){
         (e.jr?`<span class="chip human">👤 Junior ×${e.jr} <span class="x" onclick="fireEmp('jr','${A.id}')">✕</span></span>`:'')+
         (e.sr?`<span class="chip human">⭐ Senior ×${e.sr} <span class="x" onclick="fireEmp('sr','${A.id}')">✕</span></span>`:'')+'</div>';
     }
-    if(S.mgr)rows+=`<div class="trow"><span class="lbl">Estructura</span><span class="chip human">👔 Manager ×${S.mgr} <span class="x" onclick="fireEmp('mgr')">✕</span></span></div>`;
-    if(S.trained)rows+=`<div class="trow"><span class="lbl">IA-Ops</span><span class="chip">🎓 Capacitados ×${S.trained}</span></div>`;
+    if(S.mgr||(S.rh&&S.rh>0)){
+      rows+=`<div class="trow"><span class="lbl">Estructura</span>`;
+      if(S.mgr) rows+=`<span class="chip human">👔 Manager ×${S.mgr} <span class="x" onclick="fireEmp('mgr')">✕</span></span>`;
+      if(S.rh) rows+=`<span class="chip human">📋 RH ×${S.rh} <span class="x" onclick="fireRH()">✕</span></span>`;
+      rows+=`</div>`;
+    } else if(S.mgr) rows+=`<div class="trow"><span class="lbl">Estructura</span><span class="chip human">👔 Manager ×${S.mgr} <span class="x" onclick="fireEmp('mgr')">✕</span></span></div>`;
+    if(S.trained||(S.implem&&S.implem>0)){
+      rows+=`<div class="trow"><span class="lbl">IA-Ops</span>`;
+      if(S.trained) rows+=`<span class="chip">🎓 Capacitados ×${S.trained}</span>`;
+      if(S.implem) rows+=`<span class="chip">🛠 Implementador ×${S.implem} <span class="x" onclick="fireImplem()">✕</span></span>`;
+      rows+=`</div>`;
+    } else if(S.trained) rows+=`<div class="trow"><span class="lbl">IA-Ops</span><span class="chip">🎓 Capacitados ×${S.trained}</span></div>`;
     if(totalEmps()>=5){
       const m=Math.round(S.moral), mi=m>=70?'😊':m>=45?'😐':'😟';
+      const wm=WORKMODES[S.workMode];
       rows+=`<div class="trow"><span class="lbl">Moral ${mi} ${m}%</span>`+
-        Object.entries(WORKMODES).map(([k,wm])=>`<button class="btn tiny ${S.workMode===k?'primary':''}" onclick="S.workMode='${k}';logMsg('Régimen laboral: ${wm.n}.','');render()">${wm.n}</button>`).join('')+`</div>`+
-        `<div class="small muted" style="margin-top:3px">${S.workMode==='std'?'Capacidad 100% · la gente rota normal':S.workMode==='d4'?'Capacidad 90% · renuncias ×0,5 · moral sube':'Capacidad 80% · renuncias ×0,3 · moral vuela'}</div>`;
+        Object.entries(WORKMODES).map(([k,wdef])=>`<button class="btn tiny ${S.workMode===k?'primary':''}" onclick="S.workMode='${k}';logMsg('Régimen: ${wdef.n}.','');render()">${wdef.n}</button>`).join('')+`</div>`+
+        `<div class="small muted" style="margin-top:3px">Cap ×${wm.cap} · quit ×${wm.quit} · moral meta ${wm.target}%</div>`;
     }
     $('teamRows').innerHTML=rows||'<div class="small muted mt8">Nadie todavía. Todo lo hacés vos.</div>';
     $('pipeRow').innerHTML=S.pipeline.length?('🔎 En búsqueda: '+S.pipeline.map(p=>EMP[p.type].n+' ('+p.left+' sem)').join(' · ')):'';
     let hr='';
-    for(const A of AREAS)hr+=`<button class="btn small" onclick="hire('jr','${A.id}')" ${S.cash<EMP.jr.rec||S.pipeline.length>=2?'disabled':''}>+Junior ${A.name.slice(0,3)} · ${fmt(EMP.jr.rec)}</button>`;
-    hr+=`<button class="btn small" onclick="hire('sr','o')" ${S.cash<EMP.sr.rec||S.pipeline.length>=2?'disabled':''}>+Senior Ope · ${fmt(EMP.sr.rec)}</button>`;
-    hr+=`<button class="btn small" onclick="hire('sr','g')" ${S.cash<EMP.sr.rec||S.pipeline.length>=2?'disabled':''}>+Senior Gro · ${fmt(EMP.sr.rec)}</button>`;
-    if(totalEmps()>=8)hr+=`<button class="btn small" onclick="hire('mgr')" ${S.cash<EMP.mgr.rec||S.pipeline.length>=2?'disabled':''}>+Manager · ${fmt(EMP.mgr.rec)}</button>`;
+    const pipNB=S.pipeline.filter(p=>!p.batch).length, pMax=pipelineMax();
+    const dis=x=>S.cash<x||pipNB>=pMax?'disabled':'';
+    for(const A of AREAS)hr+=`<button class="btn small" onclick="hire('jr','${A.id}')" ${dis(EMP.jr.rec)}>+Jr ${A.name.slice(0,3)} · ${fmt(EMP.jr.rec)}</button>`;
+    if(totalEmps()>=3){
+      for(const A of AREAS)hr+=`<button class="btn small" onclick="hireBatch('jr','${A.id}')" ${S.cash<1500?'disabled':''}>×3Jr ${A.name.slice(0,3)} · $1.500</button>`;
+    }
+    hr+=`<button class="btn small" onclick="hire('sr','o')" ${dis(EMP.sr.rec)}>+Sr Ope · ${fmt(EMP.sr.rec)}</button>`;
+    hr+=`<button class="btn small" onclick="hire('sr','g')" ${dis(EMP.sr.rec)}>+Sr Gro · ${fmt(EMP.sr.rec)}</button>`;
+    if((S.rh||0)>=1){
+      for(const A of AREAS)hr+=`<button class="btn small" onclick="hireBatch('sr','${A.id}')" ${S.cash<3300?'disabled':''}>×2Sr ${A.name.slice(0,3)} · $3.300</button>`;
+    }
+    if(totalEmps()>=8)hr+=`<button class="btn small" onclick="hire('mgr')" ${dis(EMP.mgr.rec)}>+Manager · ${fmt(EMP.mgr.rec)}</button>`;
+    if(totalEmps()>=5&&!(S.rh>=1))hr+=`<button class="btn small" onclick="hire('rh')" ${dis(EMP.rh.rec)}>+RH · ${fmt(EMP.rh.rec)}</button>`;
+    if(P('ag')&&N('claudecode')&&(S.implem||0)<2)hr+=`<button class="btn small" onclick="hire('imp')" ${dis(EMP.imp.rec)}>+Implementador IA · ${fmt(EMP.imp.rec)}</button>`;
     $('hireRow').innerHTML=hr;
     $('trainRow').hidden=!P('aiops');
     if(P('aiops'))$('trainRow').innerHTML=`<button class="btn small primary" onclick="trainOne()" ${S.trained>=totalEmps()||S.cash<1200?'disabled':''}>🎓 Capacitar 1 en IA-Ops · $1.200</button><span class="small muted">${S.trained}/${totalEmps()} capacitados</span>`;
+  }
+
+  // hourHint
+  $('hourHint').innerHTML=hourHint();
+
+  // areas counter header
+  if(U('areas')&&$('aCount')){
+    const counts=[];
+    for(const lv of [2,3,5]){const n=cntLv(lv);if(n)counts.push(`N${lv}×${n}`);}
+    const n4=cntLv(4),n4n=cntN8n();
+    if(n4)counts.push(`N4×${n4}`); if(n4n)counts.push(`N4n×${n4n}`);
+    $('aCount').textContent=counts.length?'· '+counts.join(' · '):'';
   }
 
   // areas
@@ -1105,13 +1448,29 @@ function render(){
       let chips='';
       const eA=S.emps[a]; const hum=eA.jr+eA.sr;
       if(hum)chips+=`<span class="chip human">👤 ×${hum}</span>`;
-      for(const lv of [2,3,4,5]){
-        const ws=S.workers.filter(w=>w.area===a&&w.lv===lv);
+      for(const lv of [2,3,5]){
+        const ws=S.workers.filter(w=>w.area===a&&w.lv===lv&&!w.n8n);
         if(!ws.length)continue;
         const legacy=ws.filter(w=>w.legacy).length;
-        const untr=lv===4?ws.filter(w=>!w.trained).length:0;
-        chips+=`<span class="chip${legacy?' warn':''}">${LV[lv].icon} N${lv} ×${ws.length}${legacy?' ⚠'+legacy+' viejos':''}${untr?' 🐣'+untr+' crudos':''} <span class="x" onclick="scrapWorker('${a}',${lv})">✕</span></span>`;
-        if(untr&&lv===4){const w=ws.find(x=>!x.trained);chips+=`<button class="btn tiny" onclick="trainAgent('${w.id}')" ${S.cash<2500?'disabled':''}>🎓 entrenar $2.500</button>`;}
+        chips+=`<span class="chip${legacy?' warn':''}">${LV[lv].icon} N${lv} ×${ws.length}${legacy?' ⚠'+legacy+' viejos':''} <span class="x" onclick="scrapWorker('${a}',${lv})">✕</span></span>`;
+      }
+      // N4 regular
+      {const ws=S.workers.filter(w=>w.area===a&&w.lv===4&&!w.n8n);
+       if(ws.length){
+        const legacy=ws.filter(w=>w.legacy).length,untr=ws.filter(w=>!w.trained).length;
+        chips+=`<span class="chip${legacy?' warn':''}">${LV[4].icon} N4 ×${ws.length}${legacy?' ⚠'+legacy+' viejos':''}${untr?' 🐣'+untr:''} <span class="x" onclick="scrapWorker('${a}',4)">✕</span></span>`;
+        if(untr){const w=ws.find(x=>!x.trained);chips+=`<button class="btn tiny" onclick="trainAgent('${w.id}')" ${S.cash<2500?'disabled':''}>🎓 $2.500</button>`;}
+       }
+      }
+      // N4n (n8n)
+      {const ws=S.workers.filter(w=>w.area===a&&w.n8n);
+       if(ws.length){
+        const legacy=ws.filter(w=>w.legacy).length,untr=ws.filter(w=>!w.trained).length;
+        const canUp=legacy&&N('claudecode');
+        chips+=`<span class="chip${legacy?' warn':''} ">🔧 N4n ×${ws.length}${legacy?' ⚠'+legacy+' legacy':''}${untr?' 🐣'+untr:''} <span class="x" onclick="scrapWorker('${a}','n8n')">✕</span></span>`;
+        if(canUp)chips+=`<button class="btn tiny" onclick="upgradeN8n('${a}')" ${S.cash<4000?'disabled':''}>⬆ Claude Code $4k</button>`;
+        else if(untr&&!legacy){const w=ws.find(x=>!x.trained);chips+=`<button class="btn tiny" onclick="trainAgent('${w.id}')" ${S.cash<2500?'disabled':''}>🎓 $2.500</button>`;}
+       }
       }
       $('chips-'+a).innerHTML=chips||'<span class="small" style="color:var(--ink3)">Solo demanda. Nadie produce acá.</span>';
       // build
@@ -1122,15 +1481,33 @@ function render(){
         const sel=$('sel-'+a), cur=sel.dataset.opts||'';
         const optsKey=av.join(',');
         if(cur!==optsKey){sel.dataset.opts=optsKey;
-          sel.innerHTML=av.map(lv=>{let c=LV[lv].cost;if(S.stack==='codex')c=Math.round(c*.85);return `<option value="${lv}">${LV[lv].icon} N${lv} ${LV[lv].name} · ${fmt(c)}</option>`;}).join('');
-          const want=av.includes(S.lastLv[a])?S.lastLv[a]:av[av.length-1];
-          sel.value=String(want);
-          if(av[av.length-1]!==S.lastLv[a])logMsg('🔓 Podés construir <b>'+LV[av[av.length-1]].name+'</b> en '+A.name+'.','accent');
+          sel.innerHTML=av.map(lv=>{
+            if(lv==='4n'){
+              const n=cntN8n(a);
+              return `<option value="4n">🔧 N4n Agente n8n · $6.000 (${n}/2)</option>`;
+            }
+            let c=LV[lv].cost;if(S.stack==='codex')c=Math.round(c*.85);
+            return `<option value="${lv}">${LV[lv].icon} N${lv} ${LV[lv].name} · ${fmt(c)}</option>`;
+          }).join('');
+          const wantLv=av.includes(S.lastLv[a])?S.lastLv[a]:av[av.length-1];
+          sel.value=String(wantLv);
+          const newLv=av[av.length-1];
+          if(newLv!==S.lastLv[a]){
+            const lbl=newLv==='4n'?'Agente n8n':LV[newLv].name;
+            logMsg('🔓 Podés construir <b>'+lbl+'</b> en '+A.name+'.','accent');
+          }
         }
-        const L=LV[+sel.value];
-        let cost=L.cost;if(S.stack==='codex')cost=Math.round(cost*.85);
-        const maxed=(+sel.value===2||+sel.value===3)&&cntLv(+sel.value,a)>=L.max;
-        $('binfo-'+a).textContent=L.note+' · '+L.tok+' tok/sem'+(maxed?' · MÁX en esta área':'');
+        const selVal=sel.value;
+        let cost,maxed,binfo;
+        if(selVal==='4n'){
+          cost=6000; maxed=cntN8n(a)>=2;
+          binfo='Cap 30/14 · 180 tok/sem · 1h sup · alucina 4%'+( maxed?' · MÁX en esta área':'');
+        } else {
+          const L=LV[+selVal]; cost=L.cost;if(S.stack==='codex')cost=Math.round(cost*.85);
+          maxed=(+selVal===2||+selVal===3)&&cntLv(+selVal,a)>=L.max;
+          binfo=L.note+' · '+L.tok+' tok/sem'+(maxed?' · MÁX en esta área':'');
+        }
+        $('binfo-'+a).textContent=binfo;
         $('build-'+a).disabled=S.cash<cost||maxed;
       } else {
         brow.style.display='none';
@@ -1149,26 +1526,75 @@ function render(){
   // projects
   if(U('projects')){
     let html='';
+
+    // suscripciones per cápita
+    const availSubs=SUBS_DEF.filter(s=>N(s.gate));
+    if(availSubs.length){
+      html+='<div class="small muted" style="margin:10px 0 4px;font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.08em">— Suscripciones —</div>';
+      for(const sub of availSubs){
+        const on=S.subs&&S.subs[sub.id];
+        const since=S.subSince&&S.subSince[sub.id]||0;
+        const canOff=on&&S.week-since>=4;
+        const heads=totalEmps()+S.mgr+(S.rh||0);
+        const goH=S.emps.g.jr+S.emps.g.sr+S.emps.o.jr+S.emps.o.sr;
+        const wCost=sub.scope==='go'?sub.price*goH:sub.price*heads;
+        html+=`<div class="proj ok" style="${on?'border-color:#CFE6D5;background:#F0F8F3':''}">
+          <div class="pn">${sub.ic} ${sub.n} ${on?'<span style="color:var(--good)">● ON — −'+fmt(wCost)+'/sem</span>':''}</div>
+          <div class="pd">${sub.d}</div>
+          <div class="acts2">${on
+            ?`<button class="btn small ${canOff?'':'disabled'}" ${canOff?'':'disabled'} onclick="toggleSub('${sub.id}')">Desactivar${!canOff?' ('+(4-(S.week-since))+'sem más)':''}</button>`
+            :`<button class="btn small primary" onclick="toggleSub('${sub.id}')">Activar · ${fmt(wCost)}/sem</button>`
+          }</div></div>`;
+      }
+    }
+
     for(const p of PROJECTS){
-      if(P(p.id)&&p.id!=='doc')continue;
+      if(P(p.id)&&p.id!=='doc'&&p.id!=='ref'&&p.id!=='dirrrhh')continue;
       if(!projVisible(p))continue;
+      const cost=p.cf?p.cf():p.c;
+
       if(p.id==='doc'){
         for(const A of p.multi){const a=A.id;
           if(S.docs[a])continue;
           const wip=S.docsWip[a], ok=p.reqA(a);
-          html+=`<div class="proj ${wip?'ok':(ok?'ok':'locked')}"><div class="pn">${p.ic} Documentar ${A.name}</div><div class="pd">${p.d}</div>`+
+          html+=`<div class="proj ${wip||ok?'ok':'locked'}"><div class="pn">${p.ic} Documentar ${A.name}</div><div class="pd">${p.d}</div>`+
             (wip?`<div class="pr" style="color:var(--good)">En curso: ${wip} sem</div>`:
-              (ok?`<div class="acts2"><button class="btn small primary" onclick="buyProject('doc','${a}')" ${S.cash<p.c?'disabled':''}>Documentar · ${fmt(p.c)}</button><button class="btn small" onclick="docConsult('${a}')" ${S.cash<7000?'disabled':''}>Consultor · $7.000</button></div>`
+              (ok?`<div class="acts2"><button class="btn small primary" onclick="buyProject('doc','${a}')" ${S.cash<cost?'disabled':''}>Documentar · ${fmt(cost)}</button><button class="btn small" onclick="docConsult('${a}')" ${S.cash<7000?'disabled':''}>Consultor · $7.000</button></div>`
                 :`<div class="pr">🔒 Falta: ${p.reqTxtA(a)}</div>`))+`</div>`;
         }
         continue;
       }
+      if(p.id==='ref'&&p.isRef){
+        for(const A of p.multi){const a=A.id;
+          if(S.referents&&S.referents[a])continue;
+          const ok=p.reqA(a);
+          html+=`<div class="proj ${ok?'ok':'locked'}"><div class="pn">${p.ic} Referente de ${A.name}</div><div class="pd">${p.d}</div>`+
+            (ok?`<div class="acts2"><button class="btn small primary" onclick="buyProject('ref','${a}')" ${S.cash<cost?'disabled':''}>Asignar · ${fmt(cost)} +$150/sem</button></div>`
+              :`<div class="pr">🔒 Falta: ${p.reqTxtA(a)}</div>`)+`</div>`;
+        }
+        continue;
+      }
+      if(p.id==='dirrrhh'&&P('dirrrhh')){
+        const maxT=totalEmps()+20;
+        html+=`<div class="proj ok"><div class="pn">👔 Director de RRHH — activo (+$250/sem)</div>
+          <div class="pd">Headcount objetivo: <b>${S.hcTarget}</b> personas
+          <input type="range" min="${Math.max(1,totalEmps()-2)}" max="${maxT}" value="${S.hcTarget||totalEmps()}" oninput="S.hcTarget=+this.value;render()" style="width:100%;margin:4px 0;accent-color:var(--accent)"></div>
+          ${S.dirPaused?`<div class="pr">⏸ Pausado: ${S.dirPauseReason}</div>`:''}</div>`;
+        continue;
+      }
+
       const ok=p.req();
-      html+=`<div class="proj ${ok?'ok':'locked'}"><div class="pn">${p.ic} ${p.n}${p.sub?' <span class="small muted">+'+fmt(p.sub)+'/sem</span>':''}</div><div class="pd">${p.d}</div>`+
-        (ok?`<div class="acts2"><button class="btn small primary" onclick="buyProject('${p.id}')" ${S.cash<p.c?'disabled':''}>Comprar · ${fmt(p.c)}</button></div>`
+      const desc=typeof p.d==='function'?p.d():p.d;
+      html+=`<div class="proj ${ok?'ok':'locked'}"><div class="pn">${p.ic} ${p.n}${p.sub?' <span class="small muted">+'+fmt(p.sub)+'/sem</span>':''}</div><div class="pd">${desc}</div>`+
+        (ok?`<div class="acts2"><button class="btn small primary" onclick="buyProject('${p.id}')" ${S.cash<cost?'disabled':''}>Comprar · ${fmt(cost)}</button></div>`
           :`<div class="pr">🔒 Falta: ${p.reqTxt()}</div>`)+`</div>`;
     }
-    $('projBody').innerHTML=html||'<div class="small muted mt8">Nada nuevo por ahora. El mundo va a seguir cambiando…</div>';
+    // mostrar referentes activos
+    const activeRefs=['o','g','a'].filter(a=>S.referents&&S.referents[a]);
+    if(activeRefs.length){
+      html+=`<div class="small muted" style="margin-top:8px">🌟 Referentes activos: ${activeRefs.map(a=>AREAS.find(x=>x.id===a).name).join(', ')} (+$${150*activeRefs.length}/sem)</div>`;
+    }
+    $('projBody').innerHTML=html||'<div class="small muted mt8">Nada nuevo por ahora.</div>';
   }
 
   // clients
@@ -1201,22 +1627,30 @@ function render(){
   if(U('tokens')){
     const dir=S.tokPrice>0.99?'<span class="up">▲</span>':S.tokPrice<0.81?'<span class="dn">▼</span>':'·';
     $('tokPrice').innerHTML='$'+S.tokPrice.toFixed(2)+'/tok '+dir+(S.tokPrice<0.75?' <span class="dn">barato</span>':S.tokPrice>1.1?' <span class="up">caro</span>':'');
-    let burn=tokNeed();if(S.stack==='cc')burn=Math.round(burn*.9);
+    // proveedor note
+    if(S.provPhase>0&&$('tokProvNote'))$('tokProvNote').textContent='· '+PROV_NAMES[S.provider||'openai']+' ×'+provStats().tok;
+    const cap=tokCap();
+    $('tokBal').textContent=Math.round(S.tokens)+' / '+cap+' máx';
+    let burn=tokNeedFull();if(S.stack==='cc')burn=Math.round(burn*.9);
     if(burn>0){$('tokBurnRow').hidden=false;$('tokBurn').textContent=burn+'/sem';}
-    $('buy500').textContent='+500 · '+fmt(500*S.tokPrice);
-    $('buy2000').textContent='+2.000 · '+fmt(2000*S.tokPrice);
-    $('buy500').disabled=S.cash<500*S.tokPrice||S.tokens>=tokCap();
-    $('buy2000').disabled=S.cash<2000*S.tokPrice||S.tokens>=tokCap();
+    $('buy500').textContent='+500 · '+fmt(Math.round(500*S.tokPrice));
+    $('buy2000').textContent='+2.000 · '+fmt(Math.round(2000*S.tokPrice));
+    const atCap=S.tokens>=cap, noCash500=S.cash<500*S.tokPrice, noCash2k=S.cash<2000*S.tokPrice;
+    $('buy500').disabled=noCash500||atCap;
+    $('buy2000').disabled=noCash2k||atCap;
+    const reason=atCap?'estás al máximo (crece con tu consumo)':noCash2k?'sin caja suficiente':'';
+    if($('tokBlockReason'))$('tokBlockReason').textContent=reason?'⚠ '+reason:'';
     const w=$('autoTokWrap');
     if(P('autotok')){w.hidden=false;w.innerHTML=`<button class="btn small ${S.autoTokens?'primary':''}" onclick="toggleAutoTokens()">Auto-compra: ${S.autoTokens?'ON':'OFF'}</button>`;}
   }
 
   // migración
   if(S.migration){
-    const left=S.workers.filter(x=>x.legacy).length;
-    $('migHint').innerHTML='Salió <b>'+S.migration.why+'</b>: quedan <b>'+left+'</b> workers en versión vieja (rinden 70%).';
-    $('migConsult').textContent='Consultora: migra todo · '+fmt(left*800);
-    $('migConsult').disabled=S.cash<left*800;
+    const legacy=S.workers.filter(x=>x.legacy);
+    const consultCost=legacy.reduce((s,w)=>s+(w.n8n?4000:800),0);
+    $('migHint').innerHTML='Salió <b>'+S.migration.why+'</b>: quedan <b>'+legacy.length+'</b> workers en versión vieja (rinden 70%).'+(legacy.some(w=>w.n8n)?' <span style="color:var(--accent)">n8n: $4k c/u para upgrade</span>':'');
+    $('migConsult').textContent='Consultora: migra todo · '+fmt(consultCost);
+    $('migConsult').disabled=S.cash<consultCost;
   }
 
   // header recv
@@ -1252,7 +1686,9 @@ function logMsg(msg,cls){
 function save(){ try{ localStorage.setItem('dom_save',JSON.stringify(S)); }catch(e){} }
 function load(){
   try{ const raw=localStorage.getItem('dom_save'); if(!raw)return null;
-    const s=JSON.parse(raw); if(!s||!s.week||s.over)return null; return s;
+    const s=JSON.parse(raw); if(!s||!s.week||s.over)return null;
+    // merge with freshState so new fields get defaults
+    return Object.assign({},freshState(),s);
   }catch(e){return null;}
 }
 
@@ -1273,9 +1709,9 @@ function loop(ts){
 function paintLive(interval,dt){
   const p=(U('autorun')&&!S.over)?Math.min(1,weekAccum/interval):0;
   const sal=Object.values(S.emps).reduce((s,e)=>s+e.jr*EMP.jr.sal+e.sr*EMP.sr.sal,0)+S.mgr*EMP.mgr.sal;
-  const subs=(P('crm')?150:0)+(P('mkt')?120:0)+(P('sales')?120:0);
+  const subs=(P('crm')?150:0)+(P('mkt')?120:0)+(P('sales')?120:0)+recurringCosts();
   const net=revNow()-sal-subs-(S.ads.meta+S.ads.google+S.ads.tiktok);
-  let burn=tokNeed();if(S.stack==='cc')burn=Math.round(burn*.9);
+  let burn=tokNeedFull();if(S.stack==='cc')burn=Math.round(burn*.9);
   disp.cash=U('autorun')?S.cash+net*p:S.cash;
   disp.tok=U('autorun')?Math.max(0,S.tokens-burn*p):S.tokens;
   const k=Math.min(1,dt/130);
