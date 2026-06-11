@@ -54,7 +54,7 @@
   .hero .num{font-size:52px;font-weight:800;line-height:.95;letter-spacing:-.02em;margin-top:4px}
   .hero .num small{font-size:17px;font-weight:600;color:var(--ink2);letter-spacing:0}
   .track{position:relative;height:14px;background:#E7E4DB;border-radius:7px;margin-top:20px}
-  .fill{height:100%;border-radius:7px;transition:width .5s,background .4s;min-width:5px;background:var(--accent)}
+  .fill{height:100%;border-radius:7px;transition:background .4s;min-width:5px;background:var(--accent)}
   .mark{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--ink3)}
   .mark .t{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;white-space:nowrap;color:var(--ink2)}
   .mark.goal{background:var(--good)} .mark.goal .t{color:var(--good)}
@@ -155,6 +155,20 @@
   .kpi .v{font-weight:800;font-size:19px}
   .neg{color:var(--bad)} .pos{color:var(--good)}
 
+  /* WEEKBAR (paso del tiempo) */
+  #weekbar{height:3px;background:rgba(0,0,0,.05)}
+  #weekbar i{display:block;height:100%;width:0;background:var(--accent);opacity:.5}
+
+  /* STATUS LINE (qué falta) */
+  #statusLine{margin-top:16px;font-size:13.5px;font-weight:600;padding:10px 13px;border-radius:9px;border:1px solid var(--line)}
+  #statusLine.ok{color:var(--good);background:#EAF4EC;border-color:#CFE6D5}
+  #statusLine.bad{color:var(--bad);background:#FBECE9;border-color:#F2D2CC}
+
+  /* AREA DÉFICIT */
+  .area{transition:box-shadow .3s}
+  .area.deficit{box-shadow:inset 3px 0 0 var(--bad)}
+  .faltan{font-size:12px;font-weight:700;color:var(--bad);margin-top:6px;min-height:0}
+
   /* ---- MOBILE ---- */
   @media(max-width:560px){
     body{padding:0 12px 64px;font-size:14.5px}
@@ -197,7 +211,7 @@
     <button class="btn small" id="btnPause">⏸</button>
     <button class="btn small" id="btnSpeed">×1</button>
   </div>
-</div></header>
+</div><div id="weekbar" hidden><i></i></div></header>
 
 <div class="wrap">
 
@@ -212,6 +226,8 @@
     <div class="breakdown" id="hBreak"></div>
     <div class="goalline" id="goalLine" hidden>Meta: facturar <b style="color:var(--ink);font-weight:700">$15.000/sem</b> trabajando <b>≤12h</b>, sostenido 3 semanas. Racha: <b id="streak" style="color:var(--ink)">0/3</b></div>
   </div>
+
+  <div id="statusLine" hidden></div>
 
   <div class="stage" id="stage">
 
@@ -242,6 +258,7 @@
         <button class="btn small" id="buy500" onclick="buyTokens(500,450)">+500 · <span id="p500">$450</span></button>
         <button class="btn small" id="buy2000" onclick="buyTokens(2000,1600)">+2.000 · <span id="p2000">$1.600</span></button>
       </div>
+      <div id="autoTokWrap" class="mt12" hidden></div>
     </div>
 
     <!-- AREAS -->
@@ -346,6 +363,7 @@ function freshState(){ return {
   clients:[ mkClient('Dental Norte',1300,70), mkClient('Ferretería Paz',1250,72) ],
   workers:[], employees:[], ads:{meta:0,google:0,tiktok:0}, opHours:16,
   tokenMult:1,tokenWeeks:0, cacMult:{meta:1,google:1,tiktok:1},cacWeeks:0, sevMult:1,sevWeeks:0, capMult:1,capWeeks:0,
+  autoBought:false, autoTokens:false,
   streak:0, lastRev:0, nextEvt:3, gotGuru:false, over:false,
   paused:false, speed:1,
 };}
@@ -444,7 +462,7 @@ function checkUnlocks(){
     showPanel('pTok'); showPanel('pLog');
     $('promptBox').hidden=false;
     logMsg('Se desbloqueó el <b>Nivel 1 · Prompt</b>. Tu primer aliado de IA.','accent');
-    lesson('l_prompt','El <b>Prompt</b> no te saca del medio. Te hace más rápido. Seguís clickeando vos.');
+    announceLevel('prompt');
   }
   // N2 Asistente — a las 20 tareas
   if(!U('assistant') && S.tasksDone>=20){
@@ -452,18 +470,18 @@ function checkUnlocks(){
     showPanel('pAreas'); showPanel('pClients'); showPanel('pOp');
     buildAreas();
     logMsg('Se desbloqueó el <b>Nivel 2 · Asistente</b>: el primer worker que trabaja <b>solo</b>. Construilo en tu agencia.','accent');
-    lesson('l_assist','Hasta acá ejecutabas vos. El <b>Asistente</b> ejecuta por vos. Ahí empieza la delegación de verdad.');
+    announceLevel('assistant');
   }
   // Autorun — al construir el primer worker autónomo
   if(!U('autorun') && S.workers.length>0){
     unlock('autorun'); clearInterval(pressureTimer);
     $('pClick').classList.add('hidden');
     $('hsWeek').hidden=false; $('hsRev').hidden=false; $('hctrl').hidden=false;
+    $('weekbar').hidden=false; $('statusLine').hidden=false;
     $('goalLine').hidden=false;
     S.opHours=16; $('opHours').value=16;
     logMsg('Construiste tu primer worker autónomo. <b>Las semanas ahora corren solas.</b> Ya no clickeás tareas: supervisás.','good');
     lesson('l_auto','Soltaste el mouse. El negocio empezó a moverse sin vos. Ese es el salto.');
-    startTimer();
   }
 
   // --- Desbloqueos por logro (no por semana) ---
@@ -487,19 +505,19 @@ function checkUnlocks(){
     if(!U('workflow') && R>=6000 && countLv(2)>=2){
       unlock('workflow'); buildAreas();
       logMsg('Se desbloqueó el <b>Nivel 3 · Workflow</b>: encadena tareas, no intervenís.','accent');
-      lesson('l_wf','El <b>Workflow</b> conecta tareas en cadena. Dejás de tocar el proceso pieza por pieza.');
+      announceLevel('workflow');
     }
     // N4 Agente — $9.000/sem y 1 Workflow
     if(!U('agent') && R>=9000 && countLv(3)>=1){
       unlock('agent'); buildAreas();
       logMsg('Se desbloqueó el <b>Nivel 4 · Agente</b>: decide solo, gran capacidad. Cuidado, a veces alucina.','accent');
-      lesson('l_agent','El <b>Agente</b> es potente pero no es fe. Necesita supervisión, no devoción.');
+      announceLevel('agent');
     }
     // N5 Orquestador — $13.000/sem y 1 Agente
     if(!U('orch') && R>=13000 && countLv(4)>=1){
       unlock('orch'); buildAreas();
       logMsg('Se desbloqueó el <b>Nivel 5 · Orquestador</b>: agentes manejando agentes. El endgame.','accent');
-      lesson('l_orch','El <b>Orquestador</b> es el techo: tu operación se maneja sola. Acá tus horas se desploman.');
+      announceLevel('orch');
     }
   }
 }
@@ -515,6 +533,12 @@ function tick(){
 
   const st=areaStats();
   S.tokens=Math.max(0,S.tokens-st._need);
+  // auto-compra de tokens (implementación)
+  if(S.autoTokens && S.tokens<st._need){
+    const pr2=Math.round(1600*S.tokenMult), pr5=Math.round(450*S.tokenMult);
+    if(S.cash>=pr2){ S.cash-=pr2; S.tokens+=2000; logMsg('🔧 Auto-compra: +2.000 tokens por '+fmt(pr2)+'.',''); }
+    else if(S.cash>=pr5){ S.cash-=pr5; S.tokens+=500; logMsg('🔧 Auto-compra: +500 tokens por '+fmt(pr5)+'.',''); }
+  }
   if(st._eff<1&&st._need>0) logMsg('⚠️ Sin tokens: tus workers rinden al '+Math.round(st._eff*100)+'%.','warn');
 
   const rev=S.clients.reduce((s,c)=>s+c.fee,0);
@@ -612,13 +636,26 @@ function fireEvent(){
   ]); }
   else { S.nextEvt=2; }
 }
+let modalQueue=[];
 function showEvent(title,body,actions){
+  if(evtOpen){ modalQueue.push([title,body,actions]); return; } // si hay uno abierto, encolar
   evtOpen=true;
   $('modal').innerHTML='<h2>'+title+'</h2><p>'+body+'</p><div class="acts">'+
     actions.map((a,i)=>'<button class="btn '+(i===0?'primary':'')+'" onclick="evtAct('+i+')">'+a.t+'</button>').join('')+'</div>';
   window._acts=actions; $('overlay').style.display='flex';
 }
-function evtAct(i){ window._acts[i].f(); evtOpen=false; $('overlay').style.display='none'; checkUnlocks(); render(); }
+function evtAct(i){ window._acts[i].f(); evtOpen=false; $('overlay').style.display='none'; checkUnlocks(); render(); pumpModals(); }
+function pumpModals(){ if(evtOpen||!modalQueue.length)return; const m=modalQueue.shift(); showEvent(m[0],m[1],m[2]); }
+
+// avisos de nivel (modal que pausa y explica)
+const LEVEL_INFO={
+  prompt:{t:'🔓 Nivel 1 · Prompt', b:'Tu IA con un buen prompt: un consultor experto a pedido. <b>Pensás vos, ejecutás vos</b>, pero rendís mucho más por click. No te saca del medio: te hace más rápido.'},
+  assistant:{t:'🔓 Nivel 2 · Asistente', b:'El primer worker que trabaja <b>solo</b>: maneja una categoría entera de tareas sin que la toques. <b>Pensás vos, ejecuta la IA.</b> Acá empieza la delegación de verdad.'},
+  workflow:{t:'🔓 Nivel 3 · Workflow', b:'Encadena tareas en un proceso. Ya no intervenís pieza por pieza: armás el flujo y corre. Más capacidad y más tokens que un Asistente.'},
+  agent:{t:'🔓 Nivel 4 · Agente', b:'Decide y ejecuta <b>solo</b>, con mucho volumen. Pero a veces alucina. Se potencia con <b>supervisión, no con fe</b>.'},
+  orch:{t:'🔓 Nivel 5 · Orquestador', b:'Agentes manejando agentes. Tu operación se maneja sola y baja la supervisión de toda el área. El techo: acá tus horas se desploman.'},
+};
+function announceLevel(key){ const L=LEVEL_INFO[key]; if(L) showEvent(L.t, L.b, [{t:'Dale',f:()=>{}}]); }
 
 // ============================================================ ACTIONS
 function buildPrompt(){
@@ -656,6 +693,14 @@ function buyTokens(n,base){
   render();
 }
 function setOp(v){ S.opHours=+v; render(); }
+function buyAutoTokens(){
+  if(S.autoBought||S.cash<3000)return;
+  S.cash-=3000; S.autoBought=true; S.autoTokens=true;
+  logMsg('🔧 Implementaste la auto-compra de tokens. −'+fmt(3000)+'. Ahora el sistema se repone solo.','good');
+  lesson('l_autotok','Automatizaste hasta la compra de tokens. Una implementación que se paga sola en tu tiempo.');
+  render();
+}
+function toggleAutoTokens(){ if(!S.autoBought)return; S.autoTokens=!S.autoTokens; logMsg('Auto-compra de tokens: '+(S.autoTokens?'activada':'desactivada')+'.',''); render(); }
 
 // ============================================================ END
 function endGame(won,reason,h){
@@ -699,13 +744,14 @@ function buildAreas(){
   const opts=lv=>LV[lv]?`<option value="${lv}">N${lv} ${LV[lv].name} · ${fmt(LV[lv].cost)}</option>`:'';
   let avail=[2]; if(U('workflow'))avail.push(3); if(U('agent'))avail.push(4); if(U('orch'))avail.push(5);
   $('areasBody').innerHTML=visAreas().map(a=>`
-    <div class="area">
+    <div class="area" id="area-${a.id}">
       <div class="row"><span class="nm grow">${a.name}</span><span class="small muted" id="ratio-${a.id}"></span></div>
       <div class="small muted">${a.desc}</div>
       <div class="capwrap">
         <div class="capbar"><i id="bar-${a.id}"></i></div>
         <div class="capline"><span id="dem-${a.id}">dem 0</span><span id="cap-${a.id}">cap 0</span></div>
       </div>
+      <div class="faltan" id="falta-${a.id}"></div>
       <div class="chips" id="chips-${a.id}"></div>
       <div class="buildrow">
         <select id="sel-${a.id}" onchange="render()">${avail.map(opts).join('')}</select>
@@ -726,18 +772,11 @@ function buildAds(){
 
 function render(){
   if(!S)return;
-  // header
+  // header (los números los pinta el loop rAF)
   $('stWeek').textContent=S.week;
-  $('stCash').textContent=fmt(S.cash); $('stCash').className='v'+(S.cash<3000?' neg':'');
-  $('stRev').textContent=fmt(S.clients.reduce((a,c)=>a+c.fee,0));
-  $('stTok').textContent=Math.round(S.tokens);
   $('hsCash').hidden=!U('prompt'); $('hsTok').hidden=!U('tokens');
 
-  // hero
-  const h=calcHours();
-  $('hNum').textContent=h.toFixed(1);
-  $('hFill').style.width=Math.min(100,h/80*100)+'%';
-  $('hFill').style.background=h<=12?'var(--good)':h<=35?'var(--accent)':h<=60?'#D2691E':'var(--bad)';
+  // hero (hNum/hFill los pinta el loop)
   if(U('autorun'))
     $('hBreak').textContent='8h dirección + '+S.employees.length+'h gestión + '+calcSup().toFixed(1)+'h supervisión + '+S.opHours+'h operación manual';
   else
@@ -756,30 +795,45 @@ function render(){
     $('promptInfo').textContent=S.prompts>0?('Consume '+S.prompts*PROMPT.perClickTok+' tok por click'):('Nivel 1. Te hace más rápido, no te reemplaza.');
   }
 
-  // tokens
-  $('tokBal').textContent=Math.round(S.tokens)+(areaStats()._eff<1?' ⚠️':'');
+  // tokens (tokBal lo pinta el loop)
   if(U('autorun')){ $('tokBurnRow').hidden=false; $('tokBurn').textContent=tokNeed()+' tok/sem'; }
   $('p500').textContent=fmt(450*S.tokenMult); $('p2000').textContent=fmt(1600*S.tokenMult);
   $('buy500').disabled=S.cash<450*S.tokenMult; $('buy2000').disabled=S.cash<1600*S.tokenMult;
+  if(U('ads')){
+    const w=$('autoTokWrap'); w.hidden=false;
+    if(S.autoBought) w.innerHTML='<button class="btn small'+(S.autoTokens?' primary':'')+'" onclick="toggleAutoTokens()">Auto-compra de tokens: '+(S.autoTokens?'ON':'OFF')+'</button>';
+    else w.innerHTML='<button class="btn small primary" onclick="buyAutoTokens()"'+(S.cash<3000?' disabled':'')+'>🔧 Implementar auto-compra · '+fmt(3000)+'</button>';
+  }
 
   // areas
   if(U('assistant')){
     const st=areaStats();
     let avail=[2]; if(U('workflow'))avail.push(3); if(U('agent'))avail.push(4); if(U('orch'))avail.push(5);
     for(const a of visAreas()){
-      const x=st[a.id]; if(!x)continue;
+      const x=st[a.id]; if(!x||!$('dem-'+a.id))continue;
       const ratio=x.dem>0?Math.min(1,x.cap/x.dem):1;
       $('dem-'+a.id).textContent='dem '+x.dem.toFixed(1);
       $('cap-'+a.id).textContent='cap '+x.cap.toFixed(1)+(x.you>0?' (+'+x.you.toFixed(1)+' tuyas)':'');
       const bar=$('bar-'+a.id); bar.style.width=(ratio*100)+'%';
       bar.style.background=ratio>=1?'var(--good)':ratio>=0.8?'var(--accent)':'var(--bad)';
       const rEl=$('ratio-'+a.id); rEl.textContent=ratio>=1?'OK':Math.round(ratio*100)+'%'; rEl.style.color=ratio>=1?'var(--good)':'var(--bad)';
+      const def=Math.max(0,x.dem-x.cap);
+      $('area-'+a.id).classList.toggle('deficit',def>0.5);
+      $('falta-'+a.id).textContent=def>0.5?('⚠ Te faltan '+Math.round(def)+' de capacidad acá'):'';
       const emps=S.employees.filter(e=>e.area===a.id).map(e=>`<span class="chip human">👤 ${e.name}</span>`).join('');
       const ws=S.workers.filter(w=>w.area===a.id).map(w=>`<span class="chip">🤖 N${w.lv} ${LV[w.lv].name} <span class="x" onclick="scrapWorker('${w.id}')" title="Baja">✕</span></span>`).join('');
       $('chips-'+a.id).innerHTML=emps+ws||'<span class="small" style="color:var(--ink3)">Vacío. Acá se acumulan tareas.</span>';
       const sel=$('sel-'+a.id); const L=LV[+sel.value];
       $('binfo-'+a.id).textContent=L?(fmt(L.cost)+' · '+L.tok+' tok/sem · cap '+L.cap+' · '+L.note):'';
       $('build-'+a.id).disabled=!L||S.cash<L.cost;
+    }
+    // línea de estado: qué falta, en rojo
+    const sl=$('statusLine'); sl.hidden=!U('autorun');
+    if(U('autorun')){
+      const reds=visAreas().map(a=>({n:a.name,d:st[a.id].dem-st[a.id].cap})).filter(o=>o.d>0.5);
+      const risk=S.clients.filter(c=>c.sat<50).length;
+      if(reds.length){ sl.className='bad'; sl.innerHTML='🔴 En rojo: '+reds.map(o=>o.n+' (−'+Math.round(o.d)+')').join(', ')+(risk?' · '+risk+' cliente'+(risk>1?'s':'')+' en riesgo de irse':''); }
+      else { sl.className='ok'; sl.innerHTML='🟢 Todo cubierto. Ahora bajá tus horas hacia las 12.'; }
     }
   }
 
@@ -829,31 +883,68 @@ function logMsg(msg,cls){
 }
 
 // ============================================================ LIFECYCLE
-function startTimer(){ clearInterval(timer); if(!U('autorun'))return; timer=setInterval(()=>{ if(!S.paused)tick(); },4200/S.speed); }
+// Reloj continuo + pintado animado (un solo loop requestAnimationFrame)
+let weekAccum=0, lastFrame=null, disp={cash:0,rev:0,tok:0,hours:0};
+function resetDisplay(){ disp={cash:S.cash, rev:revNow(), tok:S.tokens, hours:calcHours()}; weekAccum=0; lastFrame=null; }
+function loop(ts){
+  requestAnimationFrame(loop);
+  const dt=(lastFrame==null)?16:Math.min(120,ts-lastFrame); lastFrame=ts;
+  if(!S) return;
+  const interval=4200/S.speed;
+  if(U('autorun') && !S.paused && !evtOpen && !S.over){
+    weekAccum+=dt; let g=0;
+    while(weekAccum>=interval && !evtOpen && !S.over && g++<3){ weekAccum-=interval; tick(); }
+  }
+  paintLive(interval, dt);
+}
+function paintLive(interval, dt){
+  const p=(U('autorun')&&!S.over)?Math.min(1,weekAccum/interval):0;
+  const sal=S.employees.reduce((s,e)=>s+e.salary,0);
+  const ad=S.ads.meta+S.ads.google+S.ads.tiktok;
+  const net=revNow()-sal-ad, need=tokNeed();
+  // caja y tokens: acumulación continua durante la semana. rev y horas: easing suave.
+  disp.cash=U('autorun')?S.cash+net*p:S.cash;
+  disp.tok =U('autorun')?Math.max(0,S.tokens-need*p):S.tokens;
+  const k=Math.min(1,dt/130);
+  disp.rev  +=(revNow()-disp.rev)*k;
+  disp.hours+=(calcHours()-disp.hours)*k;
+  // pintar
+  $('stCash').textContent=fmt(disp.cash); $('stCash').className='v'+(S.cash<3000?' neg':'');
+  $('stRev').textContent=fmt(disp.rev);
+  $('stTok').textContent=Math.round(disp.tok);
+  const effLow=need>0 && S.tokens/need<1;
+  $('tokBal').textContent=Math.round(disp.tok)+(effLow?' ⚠️':'');
+  const hh=disp.hours;
+  $('hNum').textContent=hh.toFixed(1);
+  $('hFill').style.width=Math.min(100,hh/80*100)+'%';
+  $('hFill').style.background=hh<=12?'var(--good)':hh<=35?'var(--accent)':hh<=60?'#D2691E':'var(--bad)';
+  if(U('autorun')) $('weekbar').firstElementChild.style.width=(p*100)+'%';
+}
 let pressureTimer=null;
 function startPressure(){ clearInterval(pressureTimer); pressureTimer=setInterval(manualPressure,2600); }
 
 function resetUI(){
   ['pTok','pAreas','pAds','pClients','pTeam','pOp','pLog'].forEach(id=>$(id).classList.add('hidden'));
   $('pClick').classList.remove('hidden');
-  ['hsWeek','hsCash','hsRev','hsTok','hctrl','goalLine','promptBox','tokBurnRow'].forEach(id=>$(id).hidden=true);
+  ['hsWeek','hsCash','hsRev','hsTok','hctrl','goalLine','promptBox','tokBurnRow','weekbar','statusLine','autoTokWrap'].forEach(id=>$(id).hidden=true);
   $('log').innerHTML=''; $('areasBody').innerHTML=''; $('adsBody').innerHTML='';
-  $('btnPause').textContent='⏸';
+  $('btnPause').textContent='⏸'; $('btnSpeed').textContent='×1';
 }
 function startGame(){
-  clearInterval(timer); clearInterval(pressureTimer);
+  clearInterval(pressureTimer); modalQueue=[];
   evtOpen=false; $('overlay').style.display='none';
   S=freshState(); taskIdx=0;
-  resetUI();
+  resetUI(); resetDisplay();
   render(); startPressure();
   logMsg('Arrancás solo, con 2 clientes y la bandeja llena. Suerte.','');
 }
 function restart(){ startGame(); }
 
 $('btnPause').onclick=()=>{ S.paused=!S.paused; $('btnPause').textContent=S.paused?'▶':'⏸'; };
-$('btnSpeed').onclick=()=>{ S.speed=S.speed===1?2:1; $('btnSpeed').textContent='×'+S.speed; startTimer(); };
+$('btnSpeed').onclick=()=>{ S.speed=S.speed===1?2:1; $('btnSpeed').textContent='×'+S.speed; };
 
-// show intro on load
+// arranca el loop continuo + intro
+requestAnimationFrame(loop);
 $('overlay').style.display='flex';
 </script>
 </body>
