@@ -192,6 +192,7 @@
   <div class="hstat" id="hsRecv" hidden><span class="k">Por cobrar</span><span class="v neg" id="stRecv">$0</span></div>
   <div class="hspace"></div>
   <div class="hctrl" id="hctrl" hidden>
+    <button class="btn small" id="btnSaves" onclick="openSaveManager()" title="Partidas guardadas">💾</button>
     <button class="btn small" id="btnPause">⏸</button>
     <button class="btn small" id="btnSpeed">×1</button>
   </div>
@@ -1687,9 +1688,92 @@ function save(){ try{ localStorage.setItem('dom_save',JSON.stringify(S)); }catch
 function load(){
   try{ const raw=localStorage.getItem('dom_save'); if(!raw)return null;
     const s=JSON.parse(raw); if(!s||!s.week||s.over)return null;
-    // merge with freshState so new fields get defaults
     return Object.assign({},freshState(),s);
   }catch(e){return null;}
+}
+
+// ════════════════════════════════ SAVE SLOTS
+const SAVE_SLOTS=['dom_save_1','dom_save_2','dom_save_3'];
+function slotMeta(n){
+  try{const r=localStorage.getItem(SAVE_SLOTS[n]);if(!r)return null;
+    const s=JSON.parse(r);if(!s||!s.week)return null;
+    return{week:s.week,cash:s.cash,ts:s._ts||'—',rev:s.clients?s.clients.reduce((a,c)=>a+c.fee,0):0};}
+  catch(e){return null;}
+}
+function saveSlot(n){
+  try{localStorage.setItem(SAVE_SLOTS[n],JSON.stringify({...S,_ts:new Date().toLocaleDateString('es-AR')}));}catch(e){}
+  logMsg('💾 Guardado en Slot '+(n+1)+'.','good');
+  renderSaveManager();
+}
+function loadSlot(n){
+  evtOpen=false;$('overlay').style.display='none';
+  try{const r=localStorage.getItem(SAVE_SLOTS[n]);if(!r)return;
+    const s=JSON.parse(r);if(!s||!s.week)return;
+    showEvent('⚠ Cargar Slot '+(n+1),
+      'Cargás el checkpoint de S'+s.week+' · '+fmt(s.cash)+'. La sesión actual sin guardar se pierde.',
+      [{t:'Cargar',f:()=>startGame(Object.assign({},freshState(),s))},{t:'Cancelar',f:()=>{}}]);
+  }catch(e){}
+}
+function loadSlotDirect(n){
+  try{const r=localStorage.getItem(SAVE_SLOTS[n-1]);if(!r)return;
+    const s=JSON.parse(r);if(!s||!s.week)return;
+    startGame(Object.assign({},freshState(),s));
+  }catch(e){}
+}
+function deleteSlot(n){
+  localStorage.removeItem(SAVE_SLOTS[n]);renderSaveManager();
+}
+function exportSave(){
+  try{
+    const blob=new Blob([JSON.stringify({...S,_ts:new Date().toISOString()},null,2)],{type:'application/json'});
+    const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(blob),download:'dom-S'+S.week+'.json'});
+    a.click();URL.revokeObjectURL(a.href);
+  }catch(e){alert('Error al exportar.');}
+}
+function importSave(){
+  const inp=Object.assign(document.createElement('input'),{type:'file',accept:'.json'});
+  inp.onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      try{const s=JSON.parse(ev.target.result);if(!s||!s.week){alert('Archivo inválido.');return;}
+        evtOpen=false;$('overlay').style.display='none';
+        showEvent('⬆ Importar save',
+          'Cargás la partida exportada: S'+s.week+' · '+fmt(s.cash)+'. La sesión actual se reemplaza.',
+          [{t:'Importar',f:()=>startGame(Object.assign({},freshState(),s))},{t:'Cancelar',f:()=>{}}]);
+      }catch(e){alert('Error leyendo el archivo.');}
+    };
+    r.readAsText(f);
+  };
+  inp.click();
+}
+function renderSaveManager(){
+  let h='<h2>💾 Partidas</h2>';
+  h+='<p style="font-size:13px;color:var(--ink2);margin-bottom:4px">Checkpoints manuales · la sesión siempre se auto-guarda.</p>';
+  for(let i=0;i<3;i++){
+    const m=slotMeta(i);
+    h+=`<div style="border:1px solid var(--line);border-radius:9px;padding:11px 13px;margin-top:8px">`;
+    h+=`<div style="font-weight:700;font-size:13.5px">Slot ${i+1}`;
+    if(m)h+=` · S${m.week} · ${fmt(m.cash)} · ${m.rev>0?fmt(m.rev)+'/sem':''} <span style="color:var(--ink3);font-size:11px">${m.ts}</span>`;
+    else h+=` <span style="color:var(--ink3);font-weight:400;font-size:12px">— vacío</span>`;
+    h+=`</div><div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:7px">`;
+    h+=`<button class="btn small primary" onclick="saveSlot(${i})">Guardar acá</button>`;
+    if(m){
+      h+=`<button class="btn small" onclick="loadSlot(${i})">Cargar</button>`;
+      h+=`<button class="btn small" style="color:var(--bad)" onclick="deleteSlot(${i})">Borrar</button>`;
+    }
+    h+=`</div></div>`;
+  }
+  h+=`<div style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px;display:flex;gap:8px;flex-wrap:wrap">`;
+  h+=`<button class="btn small" onclick="exportSave()">⬇ Exportar .json</button>`;
+  h+=`<button class="btn small" onclick="importSave()">⬆ Importar .json</button>`;
+  h+=`</div><div class="acts" style="margin-top:10px"><button class="btn" onclick="evtAct(0)">Cerrar</button></div>`;
+  $('modal').innerHTML=h;
+}
+function openSaveManager(){
+  if(evtOpen)return;
+  evtOpen=true; window._acts=[{t:'Cerrar',f:()=>{}}];
+  $('overlay').style.display='flex'; renderSaveManager();
 }
 
 // ════════════════════════════════ LIFECYCLE (reloj continuo rAF)
@@ -1749,12 +1833,20 @@ $('btnSpeed').onclick=()=>{S.speed=S.speed===1?2:1;$('btnSpeed').textContent='×
 // intro
 (function(){
   const sv=load();
+  const slotSaves=SAVE_SLOTS.map((k,i)=>{
+    try{const r=localStorage.getItem(k);if(!r)return null;
+      const s=JSON.parse(r);return(s&&s.week)?{n:i+1,s}:null;}
+    catch(e){return null;}
+  }).filter(Boolean);
+  let btns='';
+  if(sv)btns+='<button class="btn" onclick="startGame(load());evtOpen=false;$(\'overlay\').style.display=\'none\'">Continuar sesión · S'+sv.week+' · '+fmt(sv.cash)+'</button>';
+  for(const sl of slotSaves)btns+='<button class="btn" onclick="loadSlotDirect('+sl.n+');evtOpen=false;$(\'overlay\').style.display=\'none\'">Slot '+sl.n+': S'+sl.s.week+' · '+fmt(sl.s.cash)+'</button>';
+  btns+='<button class="btn primary" onclick="restart();evtOpen=false;$(\'overlay\').style.display=\'none\'">'+(sv||slotSaves.length?'Nueva partida':'Empezar a laburar')+'</button>';
   $('modal').innerHTML='<h2>Delegá o Morí</h2>'+
     '<p>Noviembre 2022. Tenés una agencia chiquita y estás metido en <b>todo</b>. En dos días sale ChatGPT y empieza la era de la IA — la vas a vivir <b>fecha por fecha, con las noticias reales</b>, hasta hoy.</p>'+
     '<p><b>El objetivo no es facturar más. Es trabajar menos.</b> Contratá gente, documentá procesos, capacitá, delegá en IA — y retirate.</p>'+
     '<p>Perdés por <b style="color:var(--bad)">burnout</b> o por <b style="color:var(--bad)">quiebra</b>.</p>'+
-    '<div class="acts">'+(sv?'<button class="btn" onclick="startGame(load());evtOpen=false;$(\'overlay\').style.display=\'none\'">Continuar partida</button>':'')+
-    '<button class="btn primary" onclick="restart();evtOpen=false;$(\'overlay\').style.display=\'none\'">'+(sv?'Nueva partida':'Empezar a laburar')+'</button></div>';
+    '<div class="acts">'+btns+'</div>';
   $('overlay').style.display='flex';
   requestAnimationFrame(loop);
 })();
