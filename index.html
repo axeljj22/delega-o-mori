@@ -1697,7 +1697,7 @@ const SAVE_SLOTS=['dom_save_1','dom_save_2','dom_save_3'];
 function slotMeta(n){
   try{const r=localStorage.getItem(SAVE_SLOTS[n]);if(!r)return null;
     const s=JSON.parse(r);if(!s||!s.week)return null;
-    return{week:s.week,cash:s.cash,ts:s._ts||'—',rev:s.clients?s.clients.reduce((a,c)=>a+c.fee,0):0};}
+    return{week:+s.week||0,cash:+s.cash||0,ts:s._ts||'—',rev:s.clients?s.clients.reduce((a,c)=>a+c.fee,0):0};}
   catch(e){return null;}
 }
 function saveSlot(n){
@@ -1707,12 +1707,12 @@ function saveSlot(n){
 }
 function loadSlot(n){
   evtOpen=false;$('overlay').style.display='none';
-  try{const r=localStorage.getItem(SAVE_SLOTS[n]);if(!r)return;
-    const s=JSON.parse(r);if(!s||!s.week)return;
+  try{const r=localStorage.getItem(SAVE_SLOTS[n]);if(!r){openSaveManager();return;}
+    const s=JSON.parse(r);if(!s||!s.week){openSaveManager();return;}
     showEvent('⚠ Cargar Slot '+(n+1),
       'Cargás el checkpoint de S'+s.week+' · '+fmt(s.cash)+'. La sesión actual sin guardar se pierde.',
-      [{t:'Cargar',f:()=>startGame(Object.assign({},freshState(),s))},{t:'Cancelar',f:()=>{}}]);
-  }catch(e){}
+      [{t:'Cargar',f:()=>startGame(Object.assign({},freshState(),s))},{t:'Cancelar',f:()=>openSaveManager()}]);
+  }catch(e){openSaveManager();}
 }
 function loadSlotDirect(n){
   try{const r=localStorage.getItem(SAVE_SLOTS[n-1]);if(!r)return;
@@ -1727,7 +1727,7 @@ function exportSave(){
   try{
     const blob=new Blob([JSON.stringify({...S,_ts:new Date().toISOString()},null,2)],{type:'application/json'});
     const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(blob),download:'dom-S'+S.week+'.json'});
-    a.click();URL.revokeObjectURL(a.href);
+    a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
   }catch(e){alert('Error al exportar.');}
 }
 function importSave(){
@@ -1740,7 +1740,7 @@ function importSave(){
         evtOpen=false;$('overlay').style.display='none';
         showEvent('⬆ Importar save',
           'Cargás la partida exportada: S'+s.week+' · '+fmt(s.cash)+'. La sesión actual se reemplaza.',
-          [{t:'Importar',f:()=>startGame(Object.assign({},freshState(),s))},{t:'Cancelar',f:()=>{}}]);
+          [{t:'Importar',f:()=>startGame(Object.assign({},freshState(),s))},{t:'Cancelar',f:()=>openSaveManager()}]);
       }catch(e){alert('Error leyendo el archivo.');}
     };
     r.readAsText(f);
@@ -1832,15 +1832,15 @@ $('btnSpeed').onclick=()=>{S.speed=S.speed===1?2:1;$('btnSpeed').textContent='×
 
 // intro
 (function(){
-  const sv=load();
+  const sv=load();window._svLatest=sv;
   const slotSaves=SAVE_SLOTS.map((k,i)=>{
     try{const r=localStorage.getItem(k);if(!r)return null;
       const s=JSON.parse(r);return(s&&s.week)?{n:i+1,s}:null;}
     catch(e){return null;}
   }).filter(Boolean);
   let btns='';
-  if(sv)btns+='<button class="btn" onclick="startGame(load());evtOpen=false;$(\'overlay\').style.display=\'none\'">Continuar sesión · S'+sv.week+' · '+fmt(sv.cash)+'</button>';
-  for(const sl of slotSaves)btns+='<button class="btn" onclick="loadSlotDirect('+sl.n+');evtOpen=false;$(\'overlay\').style.display=\'none\'">Slot '+sl.n+': S'+sl.s.week+' · '+fmt(sl.s.cash)+'</button>';
+  if(sv)btns+='<button class="btn" onclick="startGame(window._svLatest);evtOpen=false;$(\'overlay\').style.display=\'none\'">Continuar sesión · S'+sv.week+' · '+fmt(sv.cash)+'</button>';
+  for(const sl of slotSaves)btns+='<button class="btn" onclick="loadSlotDirect('+sl.n+');evtOpen=false;$(\'overlay\').style.display=\'none\'">Slot '+sl.n+': S'+(+sl.s.week|0)+' · '+fmt(sl.s.cash)+'</button>';
   btns+='<button class="btn primary" onclick="restart();evtOpen=false;$(\'overlay\').style.display=\'none\'">'+(sv||slotSaves.length?'Nueva partida':'Empezar a laburar')+'</button>';
   $('modal').innerHTML='<h2>Delegá o Morí</h2>'+
     '<p>Noviembre 2022. Tenés una agencia chiquita y estás metido en <b>todo</b>. En dos días sale ChatGPT y empieza la era de la IA — la vas a vivir <b>fecha por fecha, con las noticias reales</b>, hasta hoy.</p>'+
